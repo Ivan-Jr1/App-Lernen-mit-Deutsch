@@ -1,11 +1,15 @@
 # 🇩🇪 Deutsch App
 
-A full-stack German-learning app built around a real move to Berlin: spaced-repetition
-flashcards, multiple-choice roleplays of German bureaucracy (Anmeldung, opening a bank
-account, apartment viewings), and a two-person progress dashboard for friendly competition.
+A personal app I built to learn German effectively ahead of a real move to Berlin —
+and to have a genuine project in my portfolio while moving from database administration
+into software development.
 
-It doubles as a portfolio project — a REST API with a real domain model, tests, and a
-React frontend wired to it, not a pile of automation scripts.
+I study with it every day: spaced-repetition flashcards (SM-2), multiple-choice
+roleplays of German bureaucracy (Anmeldung, opening a bank account, apartment viewings),
+and a two-person progress dashboard my partner and I use for friendly competition.
+
+On the engineering side it's a full-stack app with a REST API, a real domain model,
+tests, and a React frontend wired to it — not a pile of automation scripts.
 
 > The app UI is in Portuguese on purpose: it teaches Portuguese speakers German.
 > All code identifiers, commits and docs are in English.
