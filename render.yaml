@@ -1,0 +1,21 @@
+# Blueprint do Render (https://render.com/docs/blueprint-spec).
+# Import via "New +" -> "Blueprint" apontando para este repositório.
+services:
+  - type: web
+    name: deutsch-app-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: DATABASE_URL
+        value: sqlite:///./deutsch.db
+      - key: SEED_ON_STARTUP
+        value: "true"
+      # Ajuste para o domínio real do frontend na Vercel após o primeiro deploy.
+      - key: CORS_ORIGINS
+        value: '["https://deutsch-app.vercel.app"]'

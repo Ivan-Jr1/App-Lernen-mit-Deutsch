@@ -1,0 +1,148 @@
+# 🇩🇪 Deutsch App
+
+A full-stack German-learning app built around a real move to Berlin: spaced-repetition
+flashcards, multiple-choice roleplays of German bureaucracy (Anmeldung, opening a bank
+account, apartment viewings), and a two-person progress dashboard for friendly competition.
+
+It doubles as a portfolio project — a REST API with a real domain model, tests, and a
+React frontend wired to it, not a pile of automation scripts.
+
+> The app UI is in Portuguese on purpose: it teaches Portuguese speakers German.
+> All code identifiers, commits and docs are in English.
+
+**Live demo:** _frontend_ → `<vercel-url>` · _API docs (Swagger)_ → `<render-url>/docs`
+
+## Screenshots
+
+| Flashcards (SM-2) | Bureaucracy roleplay | Couple dashboard |
+|---|---|---|
+| ![Flashcards](docs/screenshots/flashcards.png) | ![Roleplay](docs/screenshots/scenario-feedback.png) | ![Dashboard](docs/screenshots/dashboard.png) |
+
+## Features
+
+- **Spaced-repetition flashcards** — the SM-2 algorithm (the one Anki is based on).
+  Each card has a Portuguese phrase, its German translation, and a homemade phonetic
+  hint (`"Wie geht's"` → `"Ví guêts"`). Cards can be shared or private, and the
+  review schedule is **per user** — a shared card advances independently for each person.
+- **Bureaucracy scenarios** — scripted dialogues with a clerk in German and 2–3
+  multiple-choice replies. Picking a less natural answer shows *why* the better one fits.
+- **Couple mode** — points, current/longest streak, cards reviewed and scenarios
+  completed for the two users side by side. All derived by SQL aggregation, no scoreboard table.
+
+## Tech stack
+
+| Layer | Choice | Why |
+|---|---|---|
+| API | **FastAPI** + **Pydantic** | Type-checked request/response models and an OpenAPI schema (Swagger UI) generated from the code. |
+| ORM | **SQLAlchemy 2.0** (typed `Mapped[...]`) | Explicit, commented models a reviewer can read top to bottom. |
+| DB | **SQLite**, Postgres-ready | One env var (`DATABASE_URL`) switches engines — no code change. |
+| Frontend | **React** + **Vite** + **Tailwind CSS** | SPA with a dev proxy to the API; utility CSS keeps styling in the component. |
+| Tests | **pytest** + FastAPI `TestClient` | SM-2 unit tests plus endpoint tests on an isolated in-memory DB. |
+| Deploy | **Render** (API) + **Vercel** (frontend), free tiers | Blueprint + zero-config SPA. |
+
+## Project layout
+
+```
+backend/
+  app/
+    main.py        FastAPI app, CORS, routers
+    models.py      SQLAlchemy models (commented)
+    schemas.py     Pydantic request/response contracts
+    srs.py         SM-2 algorithm — pure, no framework
+    scoring.py     points rules
+    stats.py       streak + dashboard aggregation
+    routers/       cards · reviews · scenarios · dashboard
+    seed.py        loads app/data/seed_data.py
+  tests/           pytest
+frontend/
+  src/
+    api.js         thin fetch client
+    user.jsx       which user the app acts as (localStorage)
+    pages/         Review · Scenarios · Dashboard
+docs/
+  DESIGN.md        schema, algorithm and API spec (written before the code)
+```
+
+The design doc — [`docs/DESIGN.md`](docs/DESIGN.md) — has the full schema, the SM-2
+formula, the scoring rules and the endpoint list.
+
+## Run it locally
+
+Requires Python 3.11+ and Node 18+.
+
+### Backend
+
+```bash
+cd backend
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python -m app.seed                 # 2 users, ~17 cards, 3 scenarios
+uvicorn app.main:app --reload      # http://localhost:8000/docs
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev                        # http://localhost:5173  (proxies /api to :8000)
+```
+
+### Tests
+
+```bash
+cd backend && pytest -q
+```
+
+## API overview
+
+Interactive docs at `/docs`. No auth in this version (two fixed users); every request
+says who is acting via `?user=ivan` or an `X-User` header.
+
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/api/reviews/due` | cards due for review for a user |
+| `POST` | `/api/reviews` | submit a grade (0–5); runs SM-2, logs it, returns the next interval |
+| `GET` | `/api/scenarios` · `/api/scenarios/{slug}` | list / detail with steps and options |
+| `POST` | `/api/scenarios/{slug}/attempts` | start a playthrough |
+| `POST` | `/api/attempts/{id}/answers` | answer a step; returns correctness + explanation |
+| `GET` | `/api/dashboard` | both users' progress side by side |
+| `GET` | `/api/cards` + CRUD | manage flashcards |
+
+## Deploy (free tier)
+
+### Backend — Render
+
+1. Push this repo to GitHub.
+2. Render → **New +** → **Blueprint** → pick the repo. It reads [`render.yaml`](render.yaml).
+3. After the first deploy, set `CORS_ORIGINS` to your Vercel URL (JSON array) and redeploy.
+
+`SEED_ON_STARTUP=true` is set in the blueprint because Render's free disk is ephemeral —
+the SQLite file is rebuilt and reseeded on every boot. For durable data, attach a Render
+Disk or point `DATABASE_URL` at a managed Postgres (Neon/Supabase have free tiers).
+
+### Frontend — Vercel
+
+1. Vercel → **Add New** → **Project** → import the repo, root directory `frontend`.
+2. Framework preset **Vite** is detected. Add an env var `VITE_API_URL` = your Render URL.
+3. [`vercel.json`](frontend/vercel.json) rewrites all routes to `index.html` for React Router.
+
+## What this project demonstrates
+
+- Designing a **normalised relational schema** for a non-trivial domain (per-user SRS
+  state on shared content, scored multi-step quizzes) — and writing the spec before the code.
+- A **REST API** with validated contracts, layered routing, permission checks, and
+  auto-generated documentation.
+- Implementing a real **algorithm** (SM-2) as a pure, unit-tested module.
+- **SQL aggregation** for the dashboard (points, streaks) instead of denormalised counters.
+- A **React SPA** consuming the API, with loading/error/empty states and a dev proxy.
+- **Testing**: isolated in-memory DB, endpoint coverage of every feature, deterministic
+  time-zone handling.
+
+## Roadmap
+
+- JWT auth to replace the fixed-user model
+- Alembic migrations
+- Postgres in production
+- GitHub Actions running `pytest` + `npm run build` on every push
+- Audio for pronunciation hints
