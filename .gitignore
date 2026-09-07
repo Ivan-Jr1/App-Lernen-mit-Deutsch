@@ -18,3 +18,8 @@ frontend/.env
 
 # Assistente / config local
 .claude/
+
+# Vercel CLI
+.vercel
+.env.local
+.env*.local
