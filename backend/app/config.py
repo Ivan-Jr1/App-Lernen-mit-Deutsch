@@ -18,11 +18,15 @@ class Settings(BaseSettings):
     # Ligue isto em produção para o banco ser repovoado na inicialização.
     seed_on_startup: bool = False
 
-    # Origens liberadas no CORS (o front local do Vite e, depois, o domínio de produção).
+    # Origens liberadas no CORS (o front local do Vite).
     cors_origins: list[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
     ]
+
+    # A Vercel dá uma URL única por deploy (previews), então liberamos qualquer
+    # subdomínio *.vercel.app por regex em vez de listar uma a uma.
+    cors_origin_regex: str = r"https://.*\.vercel\.app"
 
 
 settings = Settings()

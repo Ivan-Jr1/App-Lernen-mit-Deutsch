@@ -16,6 +16,6 @@ services:
         value: sqlite:///./deutsch.db
       - key: SEED_ON_STARTUP
         value: "true"
-      # Ajuste para o domínio real do frontend na Vercel após o primeiro deploy.
-      - key: CORS_ORIGINS
-        value: '["https://deutsch-app.vercel.app"]'
+      # Libera qualquer subdomínio *.vercel.app (a Vercel gera uma URL por deploy).
+      - key: CORS_ORIGIN_REGEX
+        value: https://.*\.vercel\.app
