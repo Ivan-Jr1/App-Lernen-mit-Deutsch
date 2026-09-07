@@ -131,10 +131,14 @@ read-only access.
 1. Push this repo to GitHub.
 2. Render → **New +** → **Blueprint** → pick the repo. It reads [`render.yaml`](render.yaml).
    `CORS_ORIGIN_REGEX` already allows every `*.vercel.app` origin, so no post-deploy edit is needed.
+3. Set `DATABASE_URL` (in the Render dashboard) to a managed Postgres connection string —
+   [Neon](https://neon.tech) has a free, persistent tier. Paste the `postgresql://…` URL
+   as-is; the app swaps in the psycopg 3 driver itself.
 
-`SEED_ON_STARTUP=true` is set in the blueprint because Render's free disk is ephemeral —
-the SQLite file is rebuilt and reseeded on every boot. For durable data, attach a Render
-Disk or point `DATABASE_URL` at a managed Postgres (Neon/Supabase have free tiers).
+Render's free disk is ephemeral, so **without** an external database the SQLite file — and
+every account password and study record — is wiped on each deploy. `SEED_ON_STARTUP=true`
+keeps the reference data (accounts, cards, scenarios) in place; the seeders are idempotent,
+so it's a no-op once the data exists.
 
 ### Frontend — Vercel
 
@@ -160,8 +164,6 @@ Disk or point `DATABASE_URL` at a managed Postgres (Neon/Supabase have free tier
 ## Roadmap
 
 - Password reset / rotation (currently a claimed password can't be changed in-app)
-- Managed Postgres so data survives Render's ephemeral disk
-- Alembic migrations
-- Postgres in production
+- Alembic migrations (schema currently created with `create_all`)
 - GitHub Actions running `pytest` + `npm run build` on every push
 - Audio for pronunciation hints

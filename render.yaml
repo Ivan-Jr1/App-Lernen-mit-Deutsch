@@ -12,8 +12,10 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.8
+      # Definido manualmente no painel do Render (string do Neon/Postgres).
+      # sync:false = o blueprint não sobrescreve o que estiver lá.
       - key: DATABASE_URL
-        value: sqlite:///./deutsch.db
+        sync: false
       - key: SEED_ON_STARTUP
         value: "true"
       # Libera qualquer subdomínio *.vercel.app (a Vercel gera uma URL por deploy).

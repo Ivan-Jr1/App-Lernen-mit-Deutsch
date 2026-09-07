@@ -8,6 +8,9 @@ pydantic-settings>=2.7,<3
 PyJWT>=2.9,<3
 pwdlib[argon2]>=0.2,<1
 
+# driver do PostgreSQL (produção); o SQLite local não precisa dele
+psycopg[binary]>=3.2,<4
+
 # dev / tests
 pytest>=8.3,<9
 httpx>=0.28,<0.29
