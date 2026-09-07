@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '../auth/AuthContext.jsx'
 import { api } from '../lib/api.js'
+import { speakGerman, speechSupported } from '../lib/speech.js'
+import { SpeakerIcon } from '../components/icons.jsx'
 import { Button, Card, EmptyState, ErrorState, Spinner } from '../components/ui.jsx'
 
 function ScenarioList({ scenarios, onPick }) {
@@ -107,7 +109,18 @@ function Player({ scenario, onExit }) {
       </p>
 
       <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-zinc-800 p-4 text-white dark:bg-zinc-800">
-        <p className="text-xs text-zinc-400">Atendente</p>
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-zinc-400">Atendente</p>
+          {speechSupported && (
+            <button
+              onClick={() => speakGerman(step.speaker_text_de)}
+              aria-label="Ouvir em alemão"
+              className="grid size-7 place-items-center rounded-full bg-white/10 hover:bg-white/20"
+            >
+              <SpeakerIcon className="size-4" />
+            </button>
+          )}
+        </div>
         <p className="mt-1 font-medium">{step.speaker_text_de}</p>
         {step.speaker_text_pt && (
           <p className="mt-1 text-sm text-zinc-400">{step.speaker_text_pt}</p>

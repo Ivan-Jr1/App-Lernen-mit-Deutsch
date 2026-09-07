@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 
 import { useAuth } from '../auth/AuthContext.jsx'
 import { api } from '../lib/api.js'
+import { speakGerman, speechSupported, stopSpeaking } from '../lib/speech.js'
+import { SpeakerIcon, SpeakerOffIcon } from '../components/icons.jsx'
 import { Button, EmptyState, ErrorState, Spinner } from '../components/ui.jsx'
 
 // Notas do SM-2: < 3 reinicia o intervalo, >= 3 avança.
@@ -21,6 +23,8 @@ const TONE = {
   good: 'border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-900/60 dark:text-emerald-300 dark:hover:bg-emerald-950/40',
 }
 
+const MUTE_KEY = 'deutsch-app:mute-speech'
+
 function nextIntervalLabel(days) {
   if (days <= 1) return 'amanhã'
   if (days < 30) return `em ${days} dias`
@@ -28,7 +32,7 @@ function nextIntervalLabel(days) {
   return `em ${(days / 365).toFixed(1)} anos`
 }
 
-function Flashcard({ card, flipped, onFlip }) {
+function Flashcard({ card, flipped, onFlip, onSpeak }) {
   return (
     <div className="[perspective:1400px]">
       <button
@@ -53,12 +57,26 @@ function Flashcard({ card, flipped, onFlip }) {
         {/* Verso — alemão */}
         <span className="backface-hidden rotate-y-180 absolute inset-0 flex flex-col items-center justify-center rounded-3xl border border-indigo-200 bg-indigo-50 p-8 text-center shadow-sm dark:border-indigo-900/60 dark:bg-indigo-950/40">
           <span className="text-sm text-indigo-700/60 dark:text-indigo-300/60">{card.front_pt}</span>
-          <span className="mt-2 text-3xl font-bold text-indigo-950 dark:text-indigo-100">
+          <span className="mt-2 flex items-center gap-2 text-3xl font-bold text-indigo-950 dark:text-indigo-100">
             {card.back_de}
+            {speechSupported && (
+              <span
+                role="button"
+                tabIndex={-1}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onSpeak()
+                }}
+                aria-label="Ouvir em alemão"
+                className="grid size-8 place-items-center rounded-full bg-indigo-600 text-white hover:bg-indigo-500"
+              >
+                <SpeakerIcon className="size-4" />
+              </span>
+            )}
           </span>
           {card.phonetic_hint && (
             <span className="mt-2 text-sm italic text-indigo-700/80 dark:text-indigo-300/80">
-              🔊 {card.phonetic_hint}
+              {card.phonetic_hint}
             </span>
           )}
         </span>
@@ -76,6 +94,13 @@ export default function Review() {
   const [done, setDone] = useState(0)
   const [total, setTotal] = useState(0)
   const [lastResult, setLastResult] = useState(null)
+  const [muted, setMuted] = useState(() => {
+    try {
+      return localStorage.getItem(MUTE_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
 
   const load = useCallback(() => {
     setQueue(null)
@@ -93,8 +118,33 @@ export default function Review() {
   }, [])
 
   useEffect(load, [load])
+  useEffect(() => stopSpeaking, []) // silencia ao sair da tela
+
+  function toggleMute() {
+    setMuted((current) => {
+      const next = !current
+      try {
+        localStorage.setItem(MUTE_KEY, next ? '1' : '0')
+      } catch {
+        /* storage bloqueado */
+      }
+      if (next) stopSpeaking()
+      return next
+    })
+  }
+
+  // Vira o cartão; ao revelar a resposta, fala o alemão (a não ser que esteja mudo).
+  function flip() {
+    setFlipped((wasFlipped) => {
+      const nowFlipped = !wasFlipped
+      if (nowFlipped && !muted) speakGerman(queue[0].back_de)
+      else stopSpeaking()
+      return nowFlipped
+    })
+  }
 
   async function grade(value) {
+    stopSpeaking()
     const card = queue[0]
     setSubmitting(true)
     try {
@@ -137,9 +187,20 @@ export default function Review() {
   return (
     <div>
       <div className="mb-6">
-        <div className="mb-2 flex justify-between text-xs font-medium text-zinc-500 dark:text-zinc-400">
+        <div className="mb-2 flex items-center justify-between text-xs font-medium text-zinc-500 dark:text-zinc-400">
           <span>{queue.length} na fila</span>
-          <span>{done} revisados</span>
+          <div className="flex items-center gap-3">
+            <span>{done} revisados</span>
+            {speechSupported && (
+              <button
+                onClick={toggleMute}
+                aria-label={muted ? 'Ativar voz' : 'Desativar voz'}
+                className="grid size-7 place-items-center rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+              >
+                {muted ? <SpeakerOffIcon className="size-4" /> : <SpeakerIcon className="size-4" />}
+              </button>
+            )}
+          </div>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
           <div
@@ -155,11 +216,16 @@ export default function Review() {
         </p>
       )}
 
-      <Flashcard card={card} flipped={flipped} onFlip={() => setFlipped((f) => !f)} />
+      <Flashcard
+        card={card}
+        flipped={flipped}
+        onFlip={flip}
+        onSpeak={() => speakGerman(card.back_de)}
+      />
 
       <div className="mt-6">
         {!flipped ? (
-          <Button onClick={() => setFlipped(true)} className="w-full">
+          <Button onClick={flip} className="w-full">
             Mostrar resposta
           </Button>
         ) : isGuest ? (

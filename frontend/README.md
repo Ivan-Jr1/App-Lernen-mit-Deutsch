@@ -27,8 +27,10 @@ src/
 ## Telas
 
 - **Login** — escolhe a conta; no primeiro acesso define a senha. Botão de visitante (somente leitura).
-- **Review** — flashcard com flip, notas 0–5 (SM-2), barra de progresso.
-- **Scenarios** — roleplay de situações do dia a dia com feedback e explicação ao errar.
+- **Review** — flashcard com flip, notas 0–5 (SM-2), barra de progresso. Ao virar
+  o cartão, a resposta é falada em alemão via `speechSynthesis` (com botão de mudo).
+- **Scenarios** — roleplay de situações do dia a dia com feedback e explicação ao
+  errar; cada fala do atendente tem um botão para ouvir.
 - **Dashboard** — comparação de progresso dos dois usuários, com modo escuro.
 - **Settings** — foto de perfil (redimensionada no cliente), nome e troca de senha.
 

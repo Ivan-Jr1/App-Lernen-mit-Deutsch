@@ -31,8 +31,9 @@ tests, and a React frontend wired to it — not a pile of automation scripts.
 - **Spaced-repetition flashcards** — the SM-2 algorithm (the one Anki is based on),
   over a ~75-card starter deck across 15 themes (numbers, time, family, food, transport,
   health, small talk…). Each card has a Portuguese phrase, its German translation, and a
-  homemade phonetic hint (`"Wie geht's"` → `"Ví guêts"`). Cards can be shared or private,
-  and the review schedule is **per user** — a shared card advances independently for each person.
+  homemade phonetic hint (`"Wie geht's"` → `"Ví guêts"`). Flipping a card speaks the
+  German answer aloud (browser `speechSynthesis`). Cards can be shared or private, and the
+  review schedule is **per user** — a shared card advances independently for each person.
 - **Everyday-situation scenarios** — 7 scripted dialogues (Anmeldung, bank, apartment
   viewing, doctor, supermarket, bakery, booking an appointment by phone) with 2–3
   multiple-choice replies. Picking a less natural answer shows *why* the better one fits.
