@@ -1,24 +1,26 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { api } from '../api.js'
-import { EmptyState, ErrorBox, Loading } from '../components/States.jsx'
-import { useUser } from '../user.jsx'
+import { useAuth } from '../auth/AuthContext.jsx'
+import { api } from '../lib/api.js'
+import { Button, Card, EmptyState, ErrorState, Spinner } from '../components/ui.jsx'
 
 function ScenarioList({ scenarios, onPick }) {
-  if (scenarios.length === 0) return <EmptyState>Nenhum cenário cadastrado.</EmptyState>
+  if (scenarios.length === 0) return <EmptyState icon="📋" title="Nenhum cenário cadastrado." />
   return (
     <ul className="space-y-3">
       {scenarios.map((scenario) => (
         <li key={scenario.slug}>
           <button
             onClick={() => onPick(scenario.slug)}
-            className="w-full rounded-xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:border-slate-300"
+            className="group w-full rounded-2xl border border-zinc-200 bg-white p-5 text-left shadow-sm transition-colors hover:border-indigo-400 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-indigo-500"
           >
-            <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+            <span className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
               {scenario.category}
             </span>
-            <p className="mt-1 font-semibold text-slate-900">{scenario.title}</p>
-            <p className="mt-1 text-sm text-slate-500">{scenario.description}</p>
+            <p className="mt-1 font-semibold text-zinc-900 group-hover:text-indigo-600 dark:text-zinc-50 dark:group-hover:text-indigo-400">
+              {scenario.title}
+            </p>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{scenario.description}</p>
           </button>
         </li>
       ))}
@@ -26,27 +28,36 @@ function ScenarioList({ scenarios, onPick }) {
   )
 }
 
-function Player({ scenario, username, onExit }) {
+function optionStyle(answer, option) {
+  if (!answer) return 'border-zinc-200 bg-white hover:border-indigo-400 dark:border-zinc-700 dark:bg-zinc-900'
+  if (option.id === answer.correct_option_id)
+    return 'border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/40'
+  if (option.id === answer.chosenOptionId)
+    return 'border-rose-300 bg-rose-50 dark:border-rose-800 dark:bg-rose-950/40'
+  return 'border-zinc-200 bg-white opacity-50 dark:border-zinc-800 dark:bg-zinc-900'
+}
+
+function Player({ scenario, onExit }) {
   const [attemptId, setAttemptId] = useState(null)
   const [stepIndex, setStepIndex] = useState(0)
-  const [answer, setAnswer] = useState(null) // resultado do passo atual
-  const [summary, setSummary] = useState(null) // preenchido ao ver o resultado final
+  const [answer, setAnswer] = useState(null)
+  const [summary, setSummary] = useState(null)
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
     api
-      .startAttempt(username, scenario.slug)
+      .startAttempt(scenario.slug)
       .then((attempt) => setAttemptId(attempt.id))
       .catch((err) => setError(err.message))
-  }, [username, scenario.slug])
+  }, [scenario.slug])
 
   const step = scenario.steps[stepIndex]
 
   async function choose(optionId) {
     setBusy(true)
     try {
-      const result = await api.answerStep(username, attemptId, step.id, optionId)
+      const result = await api.answerStep(attemptId, step.id, optionId)
       setAnswer({ ...result, chosenOptionId: optionId })
     } catch (err) {
       setError(err.message)
@@ -57,102 +68,91 @@ function Player({ scenario, username, onExit }) {
 
   async function advance() {
     if (answer?.attempt_completed) {
-      setSummary(await api.getAttempt(username, attemptId))
+      setSummary(await api.getAttempt(attemptId))
       return
     }
     setStepIndex((index) => index + 1)
     setAnswer(null)
   }
 
-  if (error) return <ErrorBox message={error} onRetry={onExit} />
-  if (!attemptId) return <Loading label="Iniciando cenário…" />
+  if (error) return <ErrorState message={error} onRetry={onExit} />
+  if (!attemptId) return <Spinner label="Iniciando cenário…" />
 
   if (summary) {
+    const flawless = summary.correct_count === summary.total_steps
     return (
-      <EmptyState>
-        <p className="text-lg font-semibold text-slate-700">Cenário concluído ✅</p>
-        <p className="mt-1 text-sm">
-          {summary.correct_count} de {summary.total_steps} na primeira tentativa · +
-          {summary.points_earned} pontos
-        </p>
-        <button
-          onClick={onExit}
-          className="mt-4 text-sm font-medium text-slate-900 underline underline-offset-2"
-        >
-          Voltar aos cenários
-        </button>
+      <EmptyState icon={flawless ? '🏆' : '✅'} title="Cenário concluído">
+        {summary.correct_count} de {summary.total_steps} na primeira tentativa · +
+        {summary.points_earned} pontos
+        <div className="mt-4">
+          <Button variant="secondary" onClick={onExit}>
+            Voltar aos cenários
+          </Button>
+        </div>
       </EmptyState>
     )
   }
 
   return (
     <div>
-      <button onClick={onExit} className="mb-4 text-sm text-slate-500 hover:text-slate-700">
+      <button
+        onClick={onExit}
+        className="mb-4 text-sm text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-100"
+      >
         ← Sair
       </button>
 
-      <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-zinc-400">
         Passo {stepIndex + 1} de {scenario.steps.length}
       </p>
 
-      <div className="rounded-2xl bg-slate-800 p-5 text-white">
-        <p className="text-xs text-slate-400">Atendente</p>
-        <p className="mt-1 text-lg font-medium">{step.speaker_text_de}</p>
+      <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-zinc-800 p-4 text-white dark:bg-zinc-800">
+        <p className="text-xs text-zinc-400">Atendente</p>
+        <p className="mt-1 font-medium">{step.speaker_text_de}</p>
         {step.speaker_text_pt && (
-          <p className="mt-1 text-sm text-slate-400">{step.speaker_text_pt}</p>
+          <p className="mt-1 text-sm text-zinc-400">{step.speaker_text_pt}</p>
         )}
       </div>
 
       <div className="mt-4 space-y-2">
-        {step.options.map((option) => {
-          const isChosen = answer?.chosenOptionId === option.id
-          const isCorrect = answer?.correct_option_id === option.id
-          let style = 'border-slate-200 bg-white hover:border-slate-300'
-          if (answer) {
-            if (isCorrect) style = 'border-emerald-300 bg-emerald-50'
-            else if (isChosen) style = 'border-red-300 bg-red-50'
-            else style = 'border-slate-200 bg-white opacity-60'
-          }
-          return (
-            <button
-              key={option.id}
-              disabled={Boolean(answer) || busy}
-              onClick={() => choose(option.id)}
-              className={`w-full rounded-lg border px-4 py-3 text-left text-sm transition disabled:cursor-default ${style}`}
-            >
-              {option.option_text_de}
-            </button>
-          )
-        })}
+        {step.options.map((option) => (
+          <button
+            key={option.id}
+            disabled={Boolean(answer) || busy}
+            onClick={() => choose(option.id)}
+            className={`w-full rounded-xl border px-4 py-3 text-left text-sm transition-colors disabled:cursor-default ${optionStyle(answer, option)}`}
+          >
+            {option.option_text_de}
+          </button>
+        ))}
       </div>
 
       {answer && (
-        <div className="mt-4">
+        <Card className="animate-rise mt-4 p-4">
           <p
             className={`text-sm font-semibold ${
-              answer.is_correct ? 'text-emerald-700' : 'text-red-700'
+              answer.is_correct
+                ? 'text-emerald-600 dark:text-emerald-400'
+                : 'text-rose-600 dark:text-rose-400'
             }`}
           >
-            {answer.is_correct ? 'Boa!' : 'Não é a mais natural.'}
+            {answer.is_correct ? 'Boa! Resposta natural.' : 'Não é a mais natural.'}
           </p>
-          <p className="mt-1 text-sm text-slate-600">{answer.explanation}</p>
-          <button
-            onClick={advance}
-            className="mt-3 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
-          >
+          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{answer.explanation}</p>
+          <Button onClick={advance} className="mt-3">
             {answer.attempt_completed ? 'Ver resultado' : 'Próximo'}
-          </button>
-        </div>
+          </Button>
+        </Card>
       )}
     </div>
   )
 }
 
 export default function Scenarios() {
-  const { username } = useUser()
+  const { isGuest } = useAuth()
   const [scenarios, setScenarios] = useState(null)
   const [error, setError] = useState(null)
-  const [active, setActive] = useState(null) // cenário detalhado em andamento
+  const [active, setActive] = useState(null)
 
   const loadList = useCallback(() => {
     setError(null)
@@ -163,12 +163,24 @@ export default function Scenarios() {
   useEffect(loadList, [loadList])
 
   function pick(slug) {
+    if (isGuest) {
+      setError('Visitante não pode jogar os cenários. Entre com uma conta.')
+      return
+    }
     setError(null)
     api.getScenario(slug).then(setActive).catch((err) => setError(err.message))
   }
 
-  if (error) return <ErrorBox message={error} onRetry={loadList} />
-  if (active) return <Player scenario={active} username={username} onExit={loadList} />
-  if (scenarios === null) return <Loading />
+  if (error && !active && scenarios) {
+    return (
+      <div className="space-y-4">
+        <ErrorState message={error} onRetry={loadList} />
+        <ScenarioList scenarios={scenarios} onPick={pick} />
+      </div>
+    )
+  }
+  if (error) return <ErrorState message={error} onRetry={loadList} />
+  if (active) return <Player scenario={active} onExit={loadList} />
+  if (scenarios === null) return <Spinner />
   return <ScenarioList scenarios={scenarios} onPick={pick} />
 }

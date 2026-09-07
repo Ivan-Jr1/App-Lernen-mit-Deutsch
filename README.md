@@ -22,9 +22,9 @@ tests, and a React frontend wired to it — not a pile of automation scripts.
 
 ## Screenshots
 
-| Flashcards (SM-2) | Bureaucracy roleplay | Couple dashboard |
-|---|---|---|
-| ![Flashcards](docs/screenshots/flashcards.png) | ![Roleplay](docs/screenshots/scenario-feedback.png) | ![Dashboard](docs/screenshots/dashboard.png) |
+| Login (first-use claim) | Flashcards (SM-2) | Bureaucracy roleplay | Couple dashboard (dark) |
+|---|---|---|---|
+| ![Login](docs/screenshots/login.png) | ![Flashcards](docs/screenshots/flashcards.png) | ![Roleplay](docs/screenshots/scenario.png) | ![Dashboard](docs/screenshots/dashboard.png) |
 
 ## Features
 
@@ -54,19 +54,22 @@ tests, and a React frontend wired to it — not a pile of automation scripts.
 backend/
   app/
     main.py        FastAPI app, CORS, routers
+    auth.py        argon2 hashing + JWT
+    deps.py        session, current user, writer-only guard
     models.py      SQLAlchemy models (commented)
     schemas.py     Pydantic request/response contracts
     srs.py         SM-2 algorithm — pure, no framework
     scoring.py     points rules
     stats.py       streak + dashboard aggregation
-    routers/       cards · reviews · scenarios · dashboard
+    routers/       auth · cards · reviews · scenarios · dashboard
     seed.py        loads app/data/seed_data.py
-  tests/           pytest
+  tests/           pytest — SM-2, auth, and every endpoint
 frontend/
   src/
-    api.js         thin fetch client
-    user.jsx       which user the app acts as (localStorage)
-    pages/         Review · Scenarios · Dashboard
+    auth/          AuthContext — token + session (localStorage)
+    lib/           api client, theme hook
+    components/    Layout (sidebar + mobile tab bar), ui, icons
+    pages/         Login · Review · Scenarios · Dashboard
 docs/
   DESIGN.md        schema, algorithm and API spec (written before the code)
 ```
@@ -84,7 +87,7 @@ Requires Python 3.11+ and Node 18+.
 cd backend
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-python -m app.seed                 # 2 users, ~17 cards, 3 scenarios
+python -m app.seed                 # 3 accounts, ~17 cards, 3 scenarios, sample activity
 uvicorn app.main:app --reload      # http://localhost:8000/docs
 ```
 
@@ -149,7 +152,8 @@ Disk or point `DATABASE_URL` at a managed Postgres (Neon/Supabase have free tier
   guest role enforced by a dependency.
 - Implementing a real **algorithm** (SM-2) as a pure, unit-tested module.
 - **SQL aggregation** for the dashboard (points, streaks) instead of denormalised counters.
-- A **React SPA** consuming the API, with loading/error/empty states and a dev proxy.
+- A **React SPA** (Vite, Tailwind, React Router) with token auth, protected routes,
+  light/dark theme, a responsive sidebar/tab-bar layout, and PWA install support.
 - **Testing**: isolated in-memory DB, endpoint coverage of every feature, deterministic
   time-zone handling.
 

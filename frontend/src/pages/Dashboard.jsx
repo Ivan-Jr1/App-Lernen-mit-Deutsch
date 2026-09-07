@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { api } from '../api.js'
-import { ErrorBox, Loading } from '../components/States.jsx'
+import { api } from '../lib/api.js'
+import { Card, ErrorState, Spinner } from '../components/ui.jsx'
+import { FlameIcon } from '../components/icons.jsx'
 
 const days = (value) => `${value} ${value === 1 ? 'dia' : 'dias'}`
 
@@ -11,15 +12,55 @@ const METRICS = [
   { key: 'longest_streak', label: 'Streak recorde', format: days },
   { key: 'total_cards_reviewed', label: 'Cartões revisados' },
   { key: 'scenarios_completed', label: 'Cenários completados' },
-  // informativo, não é disputa: mais cartões vencidos significa estar atrasado
-  { key: 'cards_due_today', label: 'Cartões para hoje', neutral: true },
 ]
 
-function leaderIndex(users, metric) {
-  if (metric.neutral) return -1
-  const [a, b] = users.map((user) => user[metric.key])
-  if (a === b) return -1
-  return a > b ? 0 : 1
+function HeroCard({ user, leads }) {
+  return (
+    <Card className="p-5 text-center">
+      <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+        {leads && <span className="mr-1">👑</span>}
+        {user.display_name}
+      </p>
+      <p className="mt-1 text-4xl font-extrabold tracking-tight tabular-nums">
+        {user.total_points}
+      </p>
+      <p className="text-xs text-zinc-400">pontos</p>
+      <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-sm font-semibold text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
+        <FlameIcon className="size-4" />
+        {days(user.current_streak)}
+      </div>
+      {user.cards_due_today > 0 && (
+        <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
+          {user.cards_due_today} cartões esperando hoje
+        </p>
+      )}
+    </Card>
+  )
+}
+
+function ComparisonRow({ label, a, b, format }) {
+  const fmt = format ?? String
+  const total = a + b
+  const aShare = total === 0 ? 50 : (a / total) * 100
+  const leader = a === b ? null : a > b ? 'a' : 'b'
+
+  return (
+    <div className="py-3">
+      <div className="mb-1.5 flex items-center justify-between text-sm">
+        <span className={`tabular-nums ${leader === 'a' ? 'font-bold' : 'text-zinc-500 dark:text-zinc-400'}`}>
+          {fmt(a)}
+        </span>
+        <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">{label}</span>
+        <span className={`tabular-nums ${leader === 'b' ? 'font-bold' : 'text-zinc-500 dark:text-zinc-400'}`}>
+          {fmt(b)}
+        </span>
+      </div>
+      <div className="flex h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+        <div className="bg-indigo-500 transition-[width] duration-500" style={{ width: `${aShare}%` }} />
+        <div className="flex-1 bg-emerald-500" />
+      </div>
+    </div>
+  )
 }
 
 export default function Dashboard() {
@@ -33,66 +74,37 @@ export default function Dashboard() {
 
   useEffect(load, [load])
 
-  if (error) return <ErrorBox message={error} onRetry={load} />
-  if (data === null) return <Loading />
+  if (error) return <ErrorState message={error} onRetry={load} />
+  if (data === null) return <Spinner />
 
-  const users = data.users
+  const [a, b] = data.users
 
   return (
-    <div>
-      <div className="mb-6 grid grid-cols-2 gap-3">
-        {users.map((user) => (
-          <div
-            key={user.username}
-            className="rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm"
-          >
-            <p className="text-sm font-medium text-slate-500">{user.display_name}</p>
-            <p className="mt-1 text-3xl font-bold text-slate-900">{user.total_points}</p>
-            <p className="text-xs text-slate-400">pontos</p>
-            <p className="mt-2 text-sm">
-              🔥 {user.current_streak} {user.current_streak === 1 ? 'dia' : 'dias'}
-            </p>
-          </div>
-        ))}
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-3">
+        <HeroCard user={a} leads={a.total_points > b.total_points} />
+        <HeroCard user={b} leads={b.total_points > a.total_points} />
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-100 text-xs uppercase tracking-wide text-slate-400">
-              <th className="px-4 py-3 text-left font-medium">Métrica</th>
-              {users.map((user) => (
-                <th key={user.username} className="px-4 py-3 text-right font-medium">
-                  {user.display_name}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {METRICS.map((metric) => {
-              const leader = leaderIndex(users, metric)
-              return (
-                <tr key={metric.key} className="border-b border-slate-50 last:border-0">
-                  <td className="px-4 py-3 text-slate-600">{metric.label}</td>
-                  {users.map((user, index) => (
-                    <td
-                      key={user.username}
-                      className={`px-4 py-3 text-right tabular-nums ${
-                        leader === index ? 'font-bold text-slate-900' : 'text-slate-500'
-                      }`}
-                    >
-                      {metric.format ? metric.format(user[metric.key]) : user[metric.key]}
-                      {leader === index && ' ↑'}
-                    </td>
-                  ))}
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+      <Card className="px-5 py-2">
+        <div className="flex justify-between py-2 text-xs font-semibold uppercase tracking-wide">
+          <span className="text-indigo-600 dark:text-indigo-400">{a.display_name}</span>
+          <span className="text-emerald-600 dark:text-emerald-400">{b.display_name}</span>
+        </div>
+        <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+          {METRICS.map((metric) => (
+            <ComparisonRow
+              key={metric.key}
+              label={metric.label}
+              a={a[metric.key]}
+              b={b[metric.key]}
+              format={metric.format}
+            />
+          ))}
+        </div>
+      </Card>
 
-      <p className="mt-4 text-center text-xs text-slate-400">
+      <p className="text-center text-xs text-zinc-400">
         Competição amigável — o objetivo é os dois chegarem em Berlim falando alemão.
       </p>
     </div>

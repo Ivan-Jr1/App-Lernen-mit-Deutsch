@@ -284,10 +284,11 @@ backend/
   .python-version      # 3.12.8 (deploy)
 frontend/
   src/
-    api.js             # cliente fetch
-    user.jsx           # usuário ativo (localStorage)
-    pages/  Review.jsx  Scenarios.jsx  Dashboard.jsx
-    components/  States.jsx
+    auth/AuthContext.jsx   # token JWT + sessão, rotas protegidas
+    lib/  api.js  theme.js
+    components/  Layout.jsx  ui.jsx  icons.jsx
+    pages/  Login.jsx  Review.jsx  Scenarios.jsx  Dashboard.jsx
+  public/  manifest.webmanifest  icon-192.png  icon-512.png
   vercel.json          # rewrite SPA -> index.html
 docs/
   DESIGN.md

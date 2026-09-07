@@ -1,0 +1,16 @@
+{
+  "name": "Deutsch App",
+  "short_name": "Deutsch",
+  "description": "Flashcards com repetição espaçada e cenários de burocracia para aprender alemão.",
+  "start_url": "/review",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#09090b",
+  "theme_color": "#4f46e5",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
