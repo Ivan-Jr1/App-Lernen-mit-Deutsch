@@ -14,7 +14,10 @@ tests, and a React frontend wired to it — not a pile of automation scripts.
 > The app UI is in Portuguese on purpose: it teaches Portuguese speakers German.
 > All code identifiers, commits and docs are in English.
 
-**Live demo:** _frontend_ → `<vercel-url>` · _API docs (Swagger)_ → `<render-url>/docs`
+**Live demo:** [app](https://app-deutsch-iota.vercel.app) · [API docs (Swagger)](https://deutsch-app-api.onrender.com/docs)
+
+> The API runs on Render's free tier, so it sleeps after 15 min idle — the first
+> request of the day can take ~50s while it wakes up.
 
 ## Screenshots
 
@@ -119,7 +122,7 @@ says who is acting via `?user=ivan` or an `X-User` header.
 
 1. Push this repo to GitHub.
 2. Render → **New +** → **Blueprint** → pick the repo. It reads [`render.yaml`](render.yaml).
-3. After the first deploy, set `CORS_ORIGINS` to your Vercel URL (JSON array) and redeploy.
+   `CORS_ORIGIN_REGEX` already allows every `*.vercel.app` origin, so no post-deploy edit is needed.
 
 `SEED_ON_STARTUP=true` is set in the blueprint because Render's free disk is ephemeral —
 the SQLite file is rebuilt and reseeded on every boot. For durable data, attach a Render
@@ -127,8 +130,9 @@ Disk or point `DATABASE_URL` at a managed Postgres (Neon/Supabase have free tier
 
 ### Frontend — Vercel
 
-1. Vercel → **Add New** → **Project** → import the repo, root directory `frontend`.
-2. Framework preset **Vite** is detected. Add an env var `VITE_API_URL` = your Render URL.
+1. Vercel → **Add New** → **Project** → import the repo, **Root Directory** `frontend`.
+2. Framework preset **Vite** is detected. Add an env var `VITE_API_URL` = your Render URL
+   (no trailing slash), then redeploy so it's baked into the build.
 3. [`vercel.json`](frontend/vercel.json) rewrites all routes to `index.html` for React Router.
 
 ## What this project demonstrates
