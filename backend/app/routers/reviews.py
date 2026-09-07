@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import or_, select
 
-from app.deps import CurrentUser, DbSession
+from app.deps import DbSession, Reader, Writer
 from app.models import Card, ReviewLog, ReviewState, User
 from app.schemas import DueCardOut, ReviewCreate, ReviewResult
 from app.scoring import points_for_review
@@ -22,7 +22,7 @@ def _visible_to(user: User):
 @router.get("/due", response_model=list[DueCardOut])
 def list_due_cards(
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: Reader,
     limit: int = Query(default=20, ge=1, le=100),
 ):
     """Cartões nunca revisados ou com vencimento até hoje, mais atrasados primeiro."""
@@ -64,7 +64,7 @@ def list_due_cards(
 
 
 @router.post("", response_model=ReviewResult, status_code=status.HTTP_201_CREATED)
-def submit_review(payload: ReviewCreate, db: DbSession, current_user: CurrentUser):
+def submit_review(payload: ReviewCreate, db: DbSession, current_user: Writer):
     """Recalcula o intervalo do cartão pelo SM-2, grava o histórico e pontua."""
     card = db.get(Card, payload.card_id)
     if card is None or (card.owner_id is not None and card.owner_id != current_user.id):

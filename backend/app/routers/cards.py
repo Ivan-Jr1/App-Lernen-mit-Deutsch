@@ -4,7 +4,7 @@
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import or_, select
 
-from app.deps import CurrentUser, DbSession
+from app.deps import DbSession, Reader, Writer
 from app.models import Card, User
 from app.schemas import CardCreate, CardOut, CardUpdate
 
@@ -23,7 +23,7 @@ def _load_visible_card(db: DbSession, card_id: int, user: User) -> Card:
 
 
 @router.get("", response_model=list[CardOut])
-def list_cards(db: DbSession, current_user: CurrentUser, category: str | None = None):
+def list_cards(db: DbSession, current_user: Reader, category: str | None = None):
     query = select(Card).where(_visible_to(current_user)).order_by(Card.id)
     if category:
         query = query.where(Card.category == category)
@@ -31,7 +31,7 @@ def list_cards(db: DbSession, current_user: CurrentUser, category: str | None = 
 
 
 @router.post("", response_model=CardOut, status_code=status.HTTP_201_CREATED)
-def create_card(payload: CardCreate, db: DbSession, current_user: CurrentUser):
+def create_card(payload: CardCreate, db: DbSession, current_user: Writer):
     owner_id: int | None = None
     if payload.owner_username:
         owner = db.scalar(select(User).where(User.username == payload.owner_username))
@@ -53,12 +53,12 @@ def create_card(payload: CardCreate, db: DbSession, current_user: CurrentUser):
 
 
 @router.get("/{card_id}", response_model=CardOut)
-def get_card(card_id: int, db: DbSession, current_user: CurrentUser):
+def get_card(card_id: int, db: DbSession, current_user: Reader):
     return _load_visible_card(db, card_id, current_user)
 
 
 @router.put("/{card_id}", response_model=CardOut)
-def update_card(card_id: int, payload: CardUpdate, db: DbSession, current_user: CurrentUser):
+def update_card(card_id: int, payload: CardUpdate, db: DbSession, current_user: Writer):
     card = _load_visible_card(db, card_id, current_user)
     for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(card, field, value)
@@ -68,7 +68,7 @@ def update_card(card_id: int, payload: CardUpdate, db: DbSession, current_user: 
 
 
 @router.delete("/{card_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_card(card_id: int, db: DbSession, current_user: CurrentUser):
+def delete_card(card_id: int, db: DbSession, current_user: Writer):
     card = _load_visible_card(db, card_id, current_user)
     db.delete(card)
     db.commit()

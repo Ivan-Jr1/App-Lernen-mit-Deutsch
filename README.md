@@ -15,6 +15,7 @@ tests, and a React frontend wired to it — not a pile of automation scripts.
 > All code identifiers, commits and docs are in English.
 
 **Live demo:** [app](https://app-deutsch-iota.vercel.app) · [API docs (Swagger)](https://deutsch-app-api.onrender.com/docs)
+— on the app, click **"Entrar como visitante"** for a read-only tour, no signup.
 
 > The API runs on Render's free tier, so it sleeps after 15 min idle — the first
 > request of the day can take ~50s while it wakes up.
@@ -103,16 +104,20 @@ cd backend && pytest -q
 
 ## API overview
 
-Interactive docs at `/docs`. No auth in this version (two fixed users); every request
-says who is acting via `?user=ivan` or an `X-User` header.
+Interactive docs at `/docs`. Auth is a JWT bearer token on every route except
+`/api/health` and `/api/auth/*`. Registration is closed — the two accounts come
+from the seed and each sets its own password on first use. A guest token gives
+read-only access.
 
 | Method | Path | Purpose |
 |---|---|---|
-| `GET` | `/api/reviews/due` | cards due for review for a user |
+| `GET` | `/api/auth/accounts` | the fixed accounts and whether each has a password yet |
+| `POST` | `/api/auth/claim` · `/api/auth/login` | set the password on first use / log in — both return a token |
+| `POST` | `/api/auth/guest` | read-only token for recruiters |
+| `GET` | `/api/reviews/due` | cards due for review |
 | `POST` | `/api/reviews` | submit a grade (0–5); runs SM-2, logs it, returns the next interval |
 | `GET` | `/api/scenarios` · `/api/scenarios/{slug}` | list / detail with steps and options |
-| `POST` | `/api/scenarios/{slug}/attempts` | start a playthrough |
-| `POST` | `/api/attempts/{id}/answers` | answer a step; returns correctness + explanation |
+| `POST` | `/api/scenarios/{slug}/attempts` · `/api/attempts/{id}/answers` | start a playthrough / answer a step |
 | `GET` | `/api/dashboard` | both users' progress side by side |
 | `GET` | `/api/cards` + CRUD | manage flashcards |
 
@@ -139,8 +144,9 @@ Disk or point `DATABASE_URL` at a managed Postgres (Neon/Supabase have free tier
 
 - Designing a **normalised relational schema** for a non-trivial domain (per-user SRS
   state on shared content, scored multi-step quizzes) — and writing the spec before the code.
-- A **REST API** with validated contracts, layered routing, permission checks, and
-  auto-generated documentation.
+- A **REST API** with validated contracts, layered routing, auto-generated docs, and
+  **JWT auth** — argon2 password hashing, first-use password claim, and a read-only
+  guest role enforced by a dependency.
 - Implementing a real **algorithm** (SM-2) as a pure, unit-tested module.
 - **SQL aggregation** for the dashboard (points, streaks) instead of denormalised counters.
 - A **React SPA** consuming the API, with loading/error/empty states and a dev proxy.
@@ -149,7 +155,8 @@ Disk or point `DATABASE_URL` at a managed Postgres (Neon/Supabase have free tier
 
 ## Roadmap
 
-- JWT auth to replace the fixed-user model
+- Password reset / rotation (currently a claimed password can't be changed in-app)
+- Managed Postgres so data survives Render's ephemeral disk
 - Alembic migrations
 - Postgres in production
 - GitHub Actions running `pytest` + `npm run build` on every push

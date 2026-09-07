@@ -4,6 +4,10 @@ SQLAlchemy>=2.0,<2.1
 pydantic>=2.10,<3
 pydantic-settings>=2.7,<3
 
+# auth
+PyJWT>=2.9,<3
+pwdlib[argon2]>=0.2,<1
+
 # dev / tests
 pytest>=8.3,<9
 httpx>=0.28,<0.29

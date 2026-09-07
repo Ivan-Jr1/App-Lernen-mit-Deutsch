@@ -18,6 +18,11 @@ class Settings(BaseSettings):
     # Ligue isto em produção para o banco ser repovoado na inicialização.
     seed_on_startup: bool = False
 
+    # Chave de assinatura dos tokens JWT. O default só serve para desenvolvimento
+    # local — em produção defina JWT_SECRET com um valor aleatório longo.
+    jwt_secret: str = "dev-secret-change-me-in-production-please"
+    jwt_expire_days: int = 30  # app pessoal em celular: sessão longa é aceitável
+
     # Origens liberadas no CORS (o front local do Vite).
     cors_origins: list[str] = [
         "http://localhost:5173",

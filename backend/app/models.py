@@ -26,6 +26,10 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(50), unique=True, index=True)
     display_name: Mapped[str] = mapped_column(String(100))
+    # Nulo enquanto a conta não foi "reivindicada": no primeiro acesso o usuário
+    # escolhe a própria senha. A conta de visitante permanece sempre nula.
+    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    is_guest: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     review_states: Mapped[list["ReviewState"]] = relationship(back_populates="user")

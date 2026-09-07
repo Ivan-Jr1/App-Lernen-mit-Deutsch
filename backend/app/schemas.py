@@ -6,6 +6,35 @@ from datetime import date, datetime
 from pydantic import BaseModel, ConfigDict, Field
 
 # --------------------------------------------------------------------------- #
+# Autenticação                                                                 #
+# --------------------------------------------------------------------------- #
+
+
+class AccountOut(BaseModel):
+    """Uma das contas fixas, com o aviso de se já tem senha definida."""
+
+    username: str
+    display_name: str
+    claimed: bool  # False = ainda vai definir a senha no primeiro acesso
+
+
+class Credentials(BaseModel):
+    username: str = Field(min_length=1, max_length=50)
+    password: str = Field(min_length=6, max_length=128)
+
+
+class AuthUser(BaseModel):
+    username: str
+    display_name: str
+    readonly: bool
+
+
+class TokenOut(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: AuthUser
+
+# --------------------------------------------------------------------------- #
 # Cartões                                                                      #
 # --------------------------------------------------------------------------- #
 

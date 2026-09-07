@@ -19,3 +19,6 @@ services:
       # Libera qualquer subdomínio *.vercel.app (a Vercel gera uma URL por deploy).
       - key: CORS_ORIGIN_REGEX
         value: https://.*\.vercel\.app
+      # Chave JWT: o Render gera um valor aleatório no primeiro deploy.
+      - key: JWT_SECRET
+        generateValue: true

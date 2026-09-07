@@ -1,9 +1,10 @@
-"""Fixtures dos testes: um banco SQLite em memória isolado por teste e um
-TestClient com a sessão sobrescrita."""
+"""Fixtures dos testes: um banco SQLite em memória isolado por teste, um
+TestClient com a sessão sobrescrita e helpers de autenticação."""
 
 import os
 
 os.environ.setdefault("DATABASE_URL", "sqlite://")
+os.environ.setdefault("JWT_SECRET", "test-secret-not-used-in-production-0123456789")
 
 import pytest
 from fastapi.testclient import TestClient
@@ -14,6 +15,8 @@ from sqlalchemy.pool import StaticPool
 from app.database import Base, get_db
 from app.main import app
 from app.models import Card, Scenario, ScenarioOption, ScenarioStep, User
+
+TEST_PASSWORD = "senha-de-teste"
 
 
 @pytest.fixture
@@ -46,16 +49,22 @@ def client(db_session: Session) -> TestClient:
 
 @pytest.fixture
 def seeded(db_session: Session) -> dict:
-    """Dois usuários, dois cartões compartilhados e um cenário de dois passos."""
-    ivan = User(username="ivan", display_name="Ivan")
-    esposa = User(username="esposa", display_name="Esposa")
-    db_session.add_all([ivan, esposa])
+    """Duas contas sem senha (claimáveis), um visitante, dois cartões e um
+    cenário de dois passos."""
+    db_session.add_all(
+        [
+            User(username="ivan", display_name="Ivan", is_guest=False),
+            User(username="esposa", display_name="Esposa", is_guest=False),
+            User(username="demo", display_name="Visitante", is_guest=True),
+        ]
+    )
 
-    cards = [
-        Card(front_pt="Obrigado", back_de="Danke", phonetic_hint="Dânke", category="básico"),
-        Card(front_pt="Sim / Não", back_de="Ja / Nein", phonetic_hint="Iá / Náin", category="básico"),
-    ]
-    db_session.add_all(cards)
+    db_session.add_all(
+        [
+            Card(front_pt="Obrigado", back_de="Danke", phonetic_hint="Dânke", category="básico"),
+            Card(front_pt="Sim / Não", back_de="Ja / Nein", phonetic_hint="Iá / Náin", category="básico"),
+        ]
+    )
 
     scenario = Scenario(
         slug="anmeldung",
@@ -96,3 +105,36 @@ def seeded(db_session: Session) -> dict:
 
     db_session.commit()
     return {"scenario_slug": "anmeldung"}
+
+
+@pytest.fixture
+def token(client: TestClient, seeded: dict):
+    """Devolve um token de acesso para uma conta, criando a senha na primeira vez."""
+
+    def _token(username: str = "ivan", password: str = TEST_PASSWORD) -> str:
+        response = client.post(
+            "/api/auth/claim", json={"username": username, "password": password}
+        )
+        if response.status_code == 409:  # já tem senha -> login
+            response = client.post(
+                "/api/auth/login", json={"username": username, "password": password}
+            )
+        return response.json()["access_token"]
+
+    return _token
+
+
+@pytest.fixture
+def auth(token):
+    """Monta o header Authorization para uma conta."""
+
+    def _headers(username: str = "ivan") -> dict[str, str]:
+        return {"Authorization": f"Bearer {token(username)}"}
+
+    return _headers
+
+
+@pytest.fixture
+def guest_headers(client: TestClient, seeded: dict) -> dict[str, str]:
+    response = client.post("/api/auth/guest")
+    return {"Authorization": f"Bearer {response.json()['access_token']}"}

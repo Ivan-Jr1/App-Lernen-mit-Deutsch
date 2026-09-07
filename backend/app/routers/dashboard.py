@@ -3,7 +3,7 @@
 from fastapi import APIRouter
 from sqlalchemy import func, or_, select
 
-from app.deps import DbSession
+from app.deps import DbSession, Reader
 from app.models import Card, ReviewLog, ReviewState, ScenarioAttempt, User
 from app.schemas import DashboardOut, UserProgress
 from app.stats import (
@@ -31,11 +31,11 @@ def _cards_due_today(db: DbSession, user: User, today) -> int:
 
 
 @router.get("", response_model=DashboardOut)
-def get_dashboard(db: DbSession):
+def get_dashboard(db: DbSession, current_user: Reader):
     today = today_in_study_tz()
     progress: list[UserProgress] = []
 
-    for user in db.scalars(select(User).order_by(User.id)):
+    for user in db.scalars(select(User).where(User.is_guest.is_(False)).order_by(User.id)):
         days = study_days(db, user.id)
 
         review_points = db.scalar(

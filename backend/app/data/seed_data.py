@@ -9,9 +9,23 @@ estender só editando listas.
 # --------------------------------------------------------------------------- #
 
 USERS = [
-    {"username": "ivan", "display_name": "Ivan"},
-    {"username": "esposa", "display_name": "Esposa"},
+    {"username": "ivan", "display_name": "Ivan", "is_guest": False},
+    {"username": "esposa", "display_name": "Esposa", "is_guest": False},
+    # Conta somente leitura para recrutadores navegarem sem login.
+    {"username": "demo", "display_name": "Visitante", "is_guest": True},
 ]
+
+# Atividade de exemplo criada no primeiro seed para o dashboard e a tela de
+# revisão não aparecerem vazios numa demo. username -> notas de revisão.
+DEMO_REVIEW_GRADES = {
+    "ivan": [5, 4, 5, 3, 4, 5],
+    "esposa": [5, 5, 4, 5, 3, 4, 5, 4, 5],
+}
+# username -> slugs de cenários concluídos sem erro.
+DEMO_SCENARIOS_DONE = {
+    "ivan": ["anmeldung"],
+    "esposa": ["anmeldung", "konto-eroeffnen"],
+}
 
 # --------------------------------------------------------------------------- #
 # Flashcards                                                                   #

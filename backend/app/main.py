@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import Base, engine
-from app.routers import cards, dashboard, reviews, scenarios
+from app.routers import auth, cards, dashboard, reviews, scenarios
 
 # Para um projeto deste tamanho, criar as tabelas na inicialização basta.
 # Migrations (Alembic) entram quando o schema começar a evoluir em produção.
@@ -33,6 +33,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router)
 app.include_router(cards.router)
 app.include_router(reviews.router)
 app.include_router(scenarios.router)

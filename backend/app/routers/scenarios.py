@@ -2,10 +2,10 @@
 
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 
-from app.deps import CurrentUser, DbSession
+from app.deps import DbSession, Reader, Writer, get_current_user
 from app.models import (
     Scenario,
     ScenarioAttempt,
@@ -22,7 +22,8 @@ from app.schemas import (
 )
 from app.scoring import points_for_scenario
 
-router = APIRouter(prefix="/api", tags=["scenarios"])
+# Leitura exige sessão válida (inclusive visitante); escrita usa o dep Writer.
+router = APIRouter(prefix="/api", tags=["scenarios"], dependencies=[Depends(get_current_user)])
 
 
 def _get_scenario_by_slug(db: DbSession, slug: str) -> Scenario:
@@ -47,7 +48,7 @@ def get_scenario(slug: str, db: DbSession):
     response_model=AttemptOut,
     status_code=status.HTTP_201_CREATED,
 )
-def start_attempt(slug: str, db: DbSession, current_user: CurrentUser):
+def start_attempt(slug: str, db: DbSession, current_user: Writer):
     scenario = _get_scenario_by_slug(db, slug)
     attempt = ScenarioAttempt(
         user_id=current_user.id,
@@ -65,7 +66,7 @@ def answer_step(
     attempt_id: int,
     payload: AnswerCreate,
     db: DbSession,
-    current_user: CurrentUser,
+    current_user: Writer,
 ):
     attempt = db.get(ScenarioAttempt, attempt_id)
     if attempt is None or attempt.user_id != current_user.id:
@@ -133,7 +134,7 @@ def answer_step(
 
 
 @router.get("/attempts/{attempt_id}", response_model=AttemptOut)
-def get_attempt(attempt_id: int, db: DbSession, current_user: CurrentUser):
+def get_attempt(attempt_id: int, db: DbSession, current_user: Reader):
     attempt = db.get(ScenarioAttempt, attempt_id)
     if attempt is None or attempt.user_id != current_user.id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Jogada não encontrada.")

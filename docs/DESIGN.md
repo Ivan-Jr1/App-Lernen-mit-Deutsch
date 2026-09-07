@@ -17,13 +17,14 @@ frontend conectado (vaga alvo: Junior Backend / Full-Stack).
   ao errar.
 - Dashboard de casal comparando o progresso de dois usuários fixos (`ivan`,
   `esposa`) de forma amigável.
+- Autenticação por token JWT. Cadastro fechado: só as contas do seed. Cada conta
+  define a própria senha no primeiro acesso. Uma conta de visitante dá acesso
+  somente leitura para recrutadores.
 - Código legível, modelos comentados, testes dos endpoints principais, Swagger
   automático, README de deploy.
 
 **Não-objetivos (fora de escopo nesta versão)**
-- Autenticação real / cadastro de usuários. São dois usuários fixos criados por
-  seed. O cliente identifica quem está agindo via query param `?user=ivan` ou
-  header `X-User`. Um bloco no README explica como evoluir para JWT.
+- Cadastro aberto / recuperação de senha por e-mail.
 - Áudio/TTS de pronúncia (a "dica fonética" é texto).
 - App mobile nativo.
 
@@ -48,10 +49,12 @@ Dois registros fixos criados por seed.
 
 | Coluna       | Tipo        | Notas |
 |--------------|-------------|-------|
-| id           | int PK      | |
-| username     | str, unique | `ivan`, `esposa` — usado na identificação via query/header |
-| display_name | str         | Nome exibido no dashboard |
-| created_at   | datetime    | |
+| id            | int PK      | |
+| username      | str, unique | `ivan`, `esposa`, `demo` |
+| display_name  | str         | Nome exibido no dashboard |
+| password_hash | str, nullable | Argon2. Nulo = conta ainda não reivindicada (define a senha no 1º acesso). Sempre nulo para o visitante. |
+| is_guest      | bool        | `true` = conta de visitante (somente leitura), fora do dashboard do casal |
+| created_at    | datetime    | |
 
 ### 4.2 `cards`
 Conteúdo do flashcard. Não guarda estado de estudo.
@@ -220,28 +223,39 @@ ou um cenário concluído.
 recorde, total de cartões revisados (`count(review_logs)`), cenários concluídos
 (`count(scenario_attempts where is_completed)`).
 
-## 7. Superfície da API (rascunho — detalhada na etapa do backend)
+## 7. Superfície da API
+
+Autenticação por `Authorization: Bearer <token>` em tudo, exceto `/api/health` e
+`/api/auth/*`. Endpoints de escrita recusam o token de visitante (403).
 
 ```
 GET  /api/health
 
-GET  /api/cards?user=&category=            lista cartões visíveis ao usuário
-POST /api/cards                            cria cartão (compartilhado ou privado)
-GET  /api/cards/{id}
-PUT  /api/cards/{id}
-DELETE /api/cards/{id}
+GET  /api/auth/accounts                    contas fixas e se já têm senha
+POST /api/auth/claim                       body: {username, password} — define a senha no 1º acesso, devolve token
+POST /api/auth/login                       body: {username, password} — devolve token
+POST /api/auth/guest                       devolve token somente leitura (visitante)
+GET  /api/auth/me                          confirma a sessão atual
 
-GET  /api/reviews/due?user=&limit=         cartões vencidos para revisão
-POST /api/reviews?user=                    body: {card_id, grade} — aplica SM-2, grava log, devolve próximo intervalo
+GET  /api/cards?category=                  lista cartões visíveis ao usuário
+POST /api/cards                            cria cartão (compartilhado ou privado)     [escrita]
+GET  /api/cards/{id}
+PUT  /api/cards/{id}                                                                  [escrita]
+DELETE /api/cards/{id}                                                                [escrita]
+
+GET  /api/reviews/due?limit=               cartões vencidos para revisão
+POST /api/reviews                          body: {card_id, grade} — aplica SM-2, grava log  [escrita]
 
 GET  /api/scenarios                        lista cenários
 GET  /api/scenarios/{slug}                 cenário com passos e opções
-POST /api/scenarios/{slug}/attempts?user=  inicia uma jogada
-POST /api/attempts/{id}/answers?user=      body: {step_id, option_id} — devolve acerto + explicação
+POST /api/scenarios/{slug}/attempts        inicia uma jogada                          [escrita]
+POST /api/attempts/{id}/answers            body: {step_id, option_id} — acerto + explicação  [escrita]
 GET  /api/attempts/{id}                    estado da jogada
 
 GET  /api/dashboard                        números dos dois usuários lado a lado
 ```
+
+O usuário que age vem sempre do token — não há mais `?user=` nem header `X-User`.
 
 ## 8. Estrutura de pastas
 
@@ -251,20 +265,21 @@ backend/
     main.py            # instancia o FastAPI, monta os routers, seed opcional no boot
     config.py          # settings via variáveis de ambiente
     database.py        # engine, SessionLocal, Base, get_db
-    deps.py            # dependências: sessão e usuário atual (?user= / X-User)
+    auth.py            # hash de senha (argon2) e tokens JWT
+    deps.py            # dependências: sessão, usuário do token, exigência de escrita
     models.py          # modelos SQLAlchemy (comentados)
     schemas.py         # modelos Pydantic (request/response)
     srs.py             # algoritmo SM-2 isolado e testável
     scoring.py         # regras de pontuação
     stats.py           # cálculo de streak e agregados do dashboard
     routers/
-      cards.py  reviews.py  scenarios.py  dashboard.py
+      auth.py  cards.py  reviews.py  scenarios.py  dashboard.py
     data/
       seed_data.py     # conteúdo: usuários, ~17 cartões, 3 cenários
     seed.py            # insere seed_data.py no banco (idempotente; --reset)
   tests/
-    conftest.py        # banco :memory: isolado + TestClient
-    test_srs.py  test_reviews.py  test_scenarios.py  test_dashboard.py
+    conftest.py        # banco :memory: isolado + TestClient + helpers de auth
+    test_srs.py  test_auth.py  test_reviews.py  test_scenarios.py  test_dashboard.py
   requirements.txt
   .python-version      # 3.12.8 (deploy)
 frontend/
