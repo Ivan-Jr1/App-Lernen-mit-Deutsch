@@ -8,7 +8,17 @@ independente para cada pessoa.
 
 from datetime import date, datetime, timezone
 
-from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -31,6 +41,8 @@ class User(Base):
     # escolhe a própria senha. A conta de visitante permanece sempre nula.
     password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     is_guest: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Foto de perfil como data URI (o cliente já redimensiona antes de enviar).
+    avatar_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     review_states: Mapped[list["ReviewState"]] = relationship(back_populates="user")

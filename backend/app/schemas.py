@@ -27,12 +27,25 @@ class AuthUser(BaseModel):
     username: str
     display_name: str
     readonly: bool
+    avatar_url: str | None = None
 
 
 class TokenOut(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: AuthUser
+
+
+class ProfileUpdate(BaseModel):
+    display_name: str | None = Field(default=None, min_length=1, max_length=60)
+    # data URI de imagem (ex.: "data:image/jpeg;base64,...") ou null para remover.
+    # Limite generoso: o cliente redimensiona para ~256px antes de enviar.
+    avatar_url: str | None = Field(default=None, max_length=350_000)
+
+
+class PasswordChange(BaseModel):
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=6, max_length=128)
 
 # --------------------------------------------------------------------------- #
 # Cartões                                                                      #

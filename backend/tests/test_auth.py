@@ -61,3 +61,49 @@ def test_token_invalido_retorna_401(client, seeded):
         "/api/reviews/due", headers={"Authorization": "Bearer nao-e-um-token"}
     )
     assert response.status_code == 401
+
+
+def test_atualizar_perfil_nome_e_foto(client, auth):
+    headers = auth("ivan")
+    response = client.patch(
+        "/api/auth/me",
+        headers=headers,
+        json={"display_name": "Ivan B.", "avatar_url": "data:image/png;base64,AAAA"},
+    )
+    assert response.status_code == 200
+    assert response.json()["display_name"] == "Ivan B."
+
+    me = client.get("/api/auth/me", headers=headers).json()
+    assert me["avatar_url"] == "data:image/png;base64,AAAA"
+
+
+def test_visitante_nao_edita_perfil(client, guest_headers):
+    response = client.patch(
+        "/api/auth/me", headers=guest_headers, json={"display_name": "Hacker"}
+    )
+    assert response.status_code == 403
+
+
+def test_trocar_senha(client, auth):
+    headers = auth("ivan")  # claim define TEST_PASSWORD
+
+    wrong = client.post(
+        "/api/auth/change-password",
+        headers=headers,
+        json={"current_password": "errada", "new_password": "novasenha123"},
+    )
+    assert wrong.status_code == 403
+
+    ok = client.post(
+        "/api/auth/change-password",
+        headers=headers,
+        json={"current_password": "senha-de-teste", "new_password": "novasenha123"},
+    )
+    assert ok.status_code == 204
+
+    assert (
+        client.post(
+            "/api/auth/login", json={"username": "ivan", "password": "novasenha123"}
+        ).status_code
+        == 200
+    )

@@ -2,6 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 
 from app.config import settings
 from app.database import Base, engine
@@ -10,6 +11,20 @@ from app.routers import auth, cards, dashboard, reviews, scenarios
 # Para um projeto deste tamanho, criar as tabelas na inicialização basta.
 # Migrations (Alembic) entram quando o schema começar a evoluir em produção.
 Base.metadata.create_all(bind=engine)
+
+
+def _apply_pending_migrations() -> None:
+    """Colunas adicionadas depois do deploy inicial. Provisório até entrar Alembic.
+
+    Só roda no Postgres — no SQLite o banco é sempre recriado do zero pelo create_all.
+    """
+    if not settings.database_url.startswith("postgresql"):
+        return
+    with engine.begin() as connection:
+        connection.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT"))
+
+
+_apply_pending_migrations()
 
 if settings.seed_on_startup:
     from app.seed import run as seed_database
