@@ -81,4 +81,7 @@ export const api = {
 
   // Dashboard
   dashboard: () => request('/api/dashboard'),
+
+  // Zera pontos/streak/contadores da conta (mantém a agenda SM-2)
+  resetScore: () => request('/api/progress/reset', { method: 'POST' }),
 }

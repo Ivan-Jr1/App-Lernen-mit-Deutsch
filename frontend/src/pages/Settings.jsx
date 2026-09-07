@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 
 import { useAuth } from '../auth/AuthContext.jsx'
 import { api } from '../lib/api.js'
-import { CameraIcon, CheckIcon, LockIcon, TrashIcon, UserIcon } from '../components/icons.jsx'
+import { CameraIcon, CheckIcon, ChartIcon, LockIcon, TrashIcon, UserIcon } from '../components/icons.jsx'
 import { Avatar, Button, Card, EmptyState } from '../components/ui.jsx'
 
 // Redimensiona a imagem no cliente para 256x256 (corte central) e devolve um
@@ -199,6 +199,54 @@ function PasswordCard() {
   )
 }
 
+function ResetScoreCard() {
+  const [confirming, setConfirming] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [feedback, setFeedback] = useState(null)
+
+  async function reset() {
+    setSaving(true)
+    setFeedback(null)
+    try {
+      await api.resetScore()
+      setConfirming(false)
+      setFeedback({ type: 'ok', message: 'Placar zerado. Os cartões que você aprendeu continuam agendados.' })
+    } catch (err) {
+      setFeedback({ type: 'error', message: err.message })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Card className="border-amber-200 p-5 dark:border-amber-900/50">
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-500 dark:text-zinc-400">
+        <ChartIcon className="size-4" /> Placar
+      </h2>
+      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+        Zera seus pontos, streak, cartões revisados e cenários completados. A agenda
+        de revisão (SM-2) é mantida — você não perde o que já aprendeu. Só afeta a sua conta.
+      </p>
+
+      {confirming ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button onClick={reset} disabled={saving} className="bg-red-600 hover:bg-red-500">
+            {saving ? 'Zerando…' : 'Sim, zerar meu placar'}
+          </Button>
+          <Button variant="secondary" onClick={() => setConfirming(false)} disabled={saving}>
+            Cancelar
+          </Button>
+        </div>
+      ) : (
+        <Button variant="secondary" onClick={() => setConfirming(true)} className="mt-4">
+          Zerar meu placar
+        </Button>
+      )}
+      <Feedback state={feedback} />
+    </Card>
+  )
+}
+
 export default function Settings() {
   const { isGuest } = useAuth()
 
@@ -215,6 +263,7 @@ export default function Settings() {
       <h1 className="text-xl font-bold tracking-tight">Configurações</h1>
       <ProfileCard />
       <PasswordCard />
+      <ResetScoreCard />
     </div>
   )
 }

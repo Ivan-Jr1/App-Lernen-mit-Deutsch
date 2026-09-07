@@ -256,6 +256,9 @@ POST /api/attempts/{id}/answers            body: {step_id, option_id} — acerto
 GET  /api/attempts/{id}                    estado da jogada
 
 GET  /api/dashboard                        números dos dois usuários lado a lado
+
+POST /api/progress/reset                    zera o placar da conta (apaga review_logs e
+                                            scenario_attempts; mantém review_states)     [escrita]
 ```
 
 O usuário que age vem sempre do token — não há mais `?user=` nem header `X-User`.
