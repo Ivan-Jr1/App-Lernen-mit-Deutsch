@@ -19,7 +19,8 @@ def _utcnow() -> datetime:
 
 
 class User(Base):
-    """Usuário do app. Nesta versão são dois registros fixos: `ivan` e `gabriela`."""
+    """Usuário do app. Contas criadas por seed: `ivan`, `gabriela` e o `demo`
+    (visitante). Cadastro é fechado — não há criação de contas em runtime."""
 
     __tablename__ = "users"
 
