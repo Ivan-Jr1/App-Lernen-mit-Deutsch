@@ -5,7 +5,7 @@ from tests.conftest import TEST_PASSWORD
 
 def test_contas_comecam_sem_senha(client, seeded):
     accounts = client.get("/api/auth/accounts").json()
-    assert {a["username"] for a in accounts} == {"ivan", "esposa"}  # visitante fica de fora
+    assert {a["username"] for a in accounts} == {"ivan", "gabriela"}  # visitante fica de fora
     assert all(a["claimed"] is False for a in accounts)
 
 
@@ -41,7 +41,7 @@ def test_login_com_senha_certa_e_errada(client, seeded):
 
 def test_login_antes_de_definir_senha_falha(client, seeded):
     response = client.post(
-        "/api/auth/login", json={"username": "esposa", "password": TEST_PASSWORD}
+        "/api/auth/login", json={"username": "gabriela", "password": TEST_PASSWORD}
     )
     assert response.status_code == 401
 

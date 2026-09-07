@@ -44,8 +44,8 @@ def test_progresso_e_independente_por_usuario(client, auth):
     card_id = client.get("/api/reviews/due", headers=ivan).json()[0]["id"]
     client.post("/api/reviews", headers=ivan, json={"card_id": card_id, "grade": 5})
 
-    esposa_due = client.get("/api/reviews/due", headers=auth("esposa")).json()
-    assert card_id in [card["id"] for card in esposa_due]
+    gabriela_due = client.get("/api/reviews/due", headers=auth("gabriela")).json()
+    assert card_id in [card["id"] for card in gabriela_due]
 
 
 def test_sem_token_retorna_401(client, seeded):

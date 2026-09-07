@@ -10,7 +10,7 @@ estender só editando listas.
 
 USERS = [
     {"username": "ivan", "display_name": "Ivan", "is_guest": False},
-    {"username": "esposa", "display_name": "Esposa", "is_guest": False},
+    {"username": "gabriela", "display_name": "Gabriela", "is_guest": False},
     # Conta somente leitura para recrutadores navegarem sem login.
     {"username": "demo", "display_name": "Visitante", "is_guest": True},
 ]
@@ -19,12 +19,12 @@ USERS = [
 # revisão não aparecerem vazios numa demo. username -> notas de revisão.
 DEMO_REVIEW_GRADES = {
     "ivan": [5, 4, 5, 3, 4, 5],
-    "esposa": [5, 5, 4, 5, 3, 4, 5, 4, 5],
+    "gabriela": [5, 5, 4, 5, 3, 4, 5, 4, 5],
 }
 # username -> slugs de cenários concluídos sem erro.
 DEMO_SCENARIOS_DONE = {
     "ivan": ["anmeldung"],
-    "esposa": ["anmeldung", "konto-eroeffnen"],
+    "gabriela": ["anmeldung", "konto-eroeffnen"],
 }
 
 # --------------------------------------------------------------------------- #
@@ -49,7 +49,7 @@ CARDS = [
     {"front_pt": "Onde fica a estação de trem?", "back_de": "Wo ist der Bahnhof?", "phonetic_hint": "Vô ist dea Bán-hof?", "category": "direções", "owner": None},
     {"front_pt": "Eu gostaria de me registrar", "back_de": "Ich möchte mich anmelden", "phonetic_hint": "Írre mérr-te mírr án-melden", "category": "burocracia", "owner": None},
     {"front_pt": "Eu trabalho com tecnologia da informação", "back_de": "Ich arbeite in der IT", "phonetic_hint": "Írre ár-baite in dea I-Tê", "category": "trabalho", "owner": "ivan"},
-    {"front_pt": "Eu preciso de um médico", "back_de": "Ich brauche einen Arzt", "phonetic_hint": "Írre bráu-rre áinen Ártst", "category": "saúde", "owner": "esposa"},
+    {"front_pt": "Eu preciso de um médico", "back_de": "Ich brauche einen Arzt", "phonetic_hint": "Írre bráu-rre áinen Ártst", "category": "saúde", "owner": "gabriela"},
 ]
 
 # --------------------------------------------------------------------------- #

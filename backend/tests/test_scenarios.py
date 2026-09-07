@@ -72,5 +72,5 @@ def test_jogada_de_outro_usuario_retorna_404(client, auth):
     attempt_id = client.post(
         "/api/scenarios/anmeldung/attempts", headers=auth("ivan")
     ).json()["id"]
-    response = client.get(f"/api/attempts/{attempt_id}", headers=auth("esposa"))
+    response = client.get(f"/api/attempts/{attempt_id}", headers=auth("gabriela"))
     assert response.status_code == 404

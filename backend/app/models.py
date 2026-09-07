@@ -19,7 +19,7 @@ def _utcnow() -> datetime:
 
 
 class User(Base):
-    """Usuário do app. Nesta versão são dois registros fixos: `ivan` e `esposa`."""
+    """Usuário do app. Nesta versão são dois registros fixos: `ivan` e `gabriela`."""
 
     __tablename__ = "users"
 

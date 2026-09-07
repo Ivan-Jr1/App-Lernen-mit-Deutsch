@@ -54,7 +54,7 @@ def seeded(db_session: Session) -> dict:
     db_session.add_all(
         [
             User(username="ivan", display_name="Ivan", is_guest=False),
-            User(username="esposa", display_name="Esposa", is_guest=False),
+            User(username="gabriela", display_name="Gabriela", is_guest=False),
             User(username="demo", display_name="Visitante", is_guest=True),
         ]
     )

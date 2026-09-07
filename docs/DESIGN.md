@@ -16,7 +16,7 @@ frontend conectado (vaga alvo: Junior Backend / Full-Stack).
 - Cenários de burocracia em formato roleplay de múltipla escolha, com explicação
   ao errar.
 - Dashboard de casal comparando o progresso de dois usuários fixos (`ivan`,
-  `esposa`) de forma amigável.
+  `gabriela`) de forma amigável.
 - Autenticação por token JWT. Cadastro fechado: só as contas do seed. Cada conta
   define a própria senha no primeiro acesso. Uma conta de visitante dá acesso
   somente leitura para recrutadores.
@@ -50,7 +50,7 @@ Dois registros fixos criados por seed.
 | Coluna       | Tipo        | Notas |
 |--------------|-------------|-------|
 | id            | int PK      | |
-| username      | str, unique | `ivan`, `esposa`, `demo` |
+| username      | str, unique | `ivan`, `gabriela`, `demo` |
 | display_name  | str         | Nome exibido no dashboard |
 | password_hash | str, nullable | Argon2. Nulo = conta ainda não reivindicada (define a senha no 1º acesso). Sempre nulo para o visitante. |
 | is_guest      | bool        | `true` = conta de visitante (somente leitura), fora do dashboard do casal |
