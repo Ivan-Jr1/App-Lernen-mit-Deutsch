@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../auth/AuthContext.jsx'
 import { api } from '../lib/api.js'
+import { LogoMark } from '../components/Logo.jsx'
 import { Button, Spinner } from '../components/ui.jsx'
 
 export default function Login() {
@@ -56,9 +57,7 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-zinc-50 to-zinc-100 px-4 dark:from-zinc-950 dark:to-zinc-900">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-indigo-600 text-lg font-black text-white">
-            DE
-          </span>
+          <LogoMark className="mx-auto size-14 rounded-2xl" />
           <h1 className="mt-4 text-2xl font-bold tracking-tight">Deutsch App</h1>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
             Alemão para a mudança pra Berlim

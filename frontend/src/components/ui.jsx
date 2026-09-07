@@ -66,6 +66,25 @@ export function EmptyState({ icon = '✨', title, children }) {
   )
 }
 
+export function Avatar({ src, name, className = 'size-9' }) {
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt={name ?? ''}
+        className={`shrink-0 rounded-full object-cover ${className}`}
+      />
+    )
+  }
+  return (
+    <span
+      className={`grid shrink-0 place-items-center rounded-full bg-zinc-200 font-bold text-zinc-600 dark:bg-zinc-700 dark:text-zinc-200 ${className}`}
+    >
+      {name?.[0]?.toUpperCase() ?? '?'}
+    </span>
+  )
+}
+
 export function Badge({ tone = 'zinc', children }) {
   const tones = {
     zinc: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300',

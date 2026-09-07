@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard.jsx'
 import Login from './pages/Login.jsx'
 import Review from './pages/Review.jsx'
 import Scenarios from './pages/Scenarios.jsx'
+import Settings from './pages/Settings.jsx'
 import './index.css'
 
 function RequireAuth() {
@@ -30,6 +31,7 @@ const router = createBrowserRouter([
       { path: 'review', element: <Review /> },
       { path: 'scenarios', element: <Scenarios /> },
       { path: 'dashboard', element: <Dashboard /> },
+      { path: 'settings', element: <Settings /> },
     ],
   },
   { path: '*', element: <Navigate to="/" replace /> },

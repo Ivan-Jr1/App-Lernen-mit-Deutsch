@@ -52,9 +52,16 @@ export const api = {
       body: JSON.stringify({ username, password }),
     }),
   guest: () => request('/api/auth/guest', { authenticated: false, method: 'POST' }),
+  updateProfile: (patch) =>
+    request('/api/auth/me', { method: 'PATCH', body: JSON.stringify(patch) }),
+  changePassword: (currentPassword, newPassword) =>
+    request('/api/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+    }),
 
   // Flashcards
-  dueCards: (limit = 20) => request(`/api/reviews/due?limit=${limit}`),
+  dueCards: (limit = 60) => request(`/api/reviews/due?limit=${limit}`),
   submitReview: (cardId, grade) =>
     request('/api/reviews', {
       method: 'POST',

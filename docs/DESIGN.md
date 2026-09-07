@@ -54,6 +54,7 @@ Dois registros fixos criados por seed.
 | display_name  | str         | Nome exibido no dashboard |
 | password_hash | str, nullable | Argon2. Nulo = conta ainda não reivindicada (define a senha no 1º acesso). Sempre nulo para o visitante. |
 | is_guest      | bool        | `true` = conta de visitante (somente leitura), fora do dashboard do casal |
+| avatar_url    | text, nullable | Foto de perfil como data URI (o cliente redimensiona para ~256px antes de enviar) |
 | created_at    | datetime    | |
 
 ### 4.2 `cards`
@@ -236,6 +237,8 @@ POST /api/auth/claim                       body: {username, password} — define
 POST /api/auth/login                       body: {username, password} — devolve token
 POST /api/auth/guest                       devolve token somente leitura (visitante)
 GET  /api/auth/me                          confirma a sessão atual
+PATCH /api/auth/me                         body: {display_name?, avatar_url?} — atualiza o perfil  [escrita]
+POST /api/auth/change-password             body: {current_password, new_password}                  [escrita]
 
 GET  /api/cards?category=                  lista cartões visíveis ao usuário
 POST /api/cards                            cria cartão (compartilhado ou privado)     [escrita]
@@ -275,7 +278,7 @@ backend/
     routers/
       auth.py  cards.py  reviews.py  scenarios.py  dashboard.py
     data/
-      seed_data.py     # conteúdo: usuários, ~17 cartões, 3 cenários
+      seed_data.py     # conteúdo: contas, ~75 cartões (15 temas), 7 cenários
     seed.py            # insere seed_data.py no banco (idempotente; --reset)
   tests/
     conftest.py        # banco :memory: isolado + TestClient + helpers de auth
@@ -286,8 +289,8 @@ frontend/
   src/
     auth/AuthContext.jsx   # token JWT + sessão, rotas protegidas
     lib/  api.js  theme.js
-    components/  Layout.jsx  ui.jsx  icons.jsx
-    pages/  Login.jsx  Review.jsx  Scenarios.jsx  Dashboard.jsx
+    components/  Layout.jsx  Logo.jsx  ui.jsx  icons.jsx
+    pages/  Login.jsx  Review.jsx  Scenarios.jsx  Dashboard.jsx  Settings.jsx
   public/  manifest.webmanifest  icon-192.png  icon-512.png
   vercel.json          # rewrite SPA -> index.html
 docs/

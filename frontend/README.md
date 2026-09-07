@@ -19,16 +19,18 @@ src/
   lib/api.js             cliente fetch (injeta o Bearer, trata 401)
   lib/theme.js           hook de modo claro/escuro (classe .dark no <html>)
   components/Layout.jsx  casca: sidebar no desktop, barra inferior no celular
-  components/ui.jsx      Button, Card, estados de loading/erro/vazio
-  pages/                 Login · Review · Scenarios · Dashboard
+  components/Logo.jsx    marca com as faixas da bandeira alemã
+  components/ui.jsx      Button, Card, Avatar, estados de loading/erro/vazio
+  pages/                 Login · Review · Scenarios · Dashboard · Settings
 ```
 
 ## Telas
 
 - **Login** — escolhe a conta; no primeiro acesso define a senha. Botão de visitante (somente leitura).
 - **Review** — flashcard com flip, notas 0–5 (SM-2), barra de progresso.
-- **Scenarios** — roleplay de burocracia com feedback e explicação ao errar.
+- **Scenarios** — roleplay de situações do dia a dia com feedback e explicação ao errar.
 - **Dashboard** — comparação de progresso dos dois usuários, com modo escuro.
+- **Settings** — foto de perfil (redimensionada no cliente), nome e troca de senha.
 
 ## PWA
 

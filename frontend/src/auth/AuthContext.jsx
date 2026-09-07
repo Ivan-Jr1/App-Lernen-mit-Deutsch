@@ -48,6 +48,23 @@ export function AuthProvider({ children }) {
     [persist],
   )
 
+  // Atualiza os dados do usuário na sessão (nome/foto) sem mexer no token.
+  const updateUser = useCallback(
+    (patch) => {
+      setSession((current) => {
+        if (!current) return current
+        const next = { ...current, user: { ...current.user, ...patch } }
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+        } catch {
+          /* storage bloqueado */
+        }
+        return next
+      })
+    },
+    [],
+  )
+
   const value = useMemo(
     () => ({
       user: session?.user ?? null,
@@ -56,9 +73,10 @@ export function AuthProvider({ children }) {
       login: async (username, password) => applyToken(await api.login(username, password)),
       claim: async (username, password) => applyToken(await api.claim(username, password)),
       guest: async () => applyToken(await api.guest()),
+      updateUser,
       logout,
     }),
-    [session, applyToken, logout],
+    [session, applyToken, updateUser, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

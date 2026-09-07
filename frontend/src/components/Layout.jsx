@@ -4,25 +4,23 @@ import { NavLink, Outlet } from 'react-router-dom'
 
 import { useAuth } from '../auth/AuthContext.jsx'
 import { useTheme } from '../lib/theme.js'
-import { CardsIcon, ChartIcon, ChatIcon, LogoutIcon, MoonIcon, SunIcon } from './icons.jsx'
-import { Badge } from './ui.jsx'
+import {
+  CardsIcon,
+  ChartIcon,
+  ChatIcon,
+  LogoutIcon,
+  MoonIcon,
+  SettingsIcon,
+  SunIcon,
+} from './icons.jsx'
+import { Logo } from './Logo.jsx'
+import { Avatar, Badge } from './ui.jsx'
 
 const NAV = [
   { to: '/review', label: 'Flashcards', Icon: CardsIcon },
   { to: '/scenarios', label: 'Cenários', Icon: ChatIcon },
   { to: '/dashboard', label: 'Dashboard', Icon: ChartIcon },
 ]
-
-function Logo() {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="grid size-8 place-items-center rounded-lg bg-indigo-600 text-sm font-black text-white">
-        DE
-      </span>
-      <span className="text-[15px] font-bold tracking-tight">Deutsch App</span>
-    </div>
-  )
-}
 
 function ThemeToggle() {
   const { isDark, toggle } = useTheme()
@@ -37,28 +35,29 @@ function ThemeToggle() {
   )
 }
 
-function UserBlock({ compact = false }) {
-  const { user, isGuest, logout } = useAuth()
+function ProfileLink({ compact = false }) {
+  const { user, isGuest } = useAuth()
   return (
-    <div className={compact ? 'flex items-center gap-2' : 'space-y-3'}>
-      <div className="flex items-center gap-2.5">
-        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-zinc-200 text-sm font-bold text-zinc-600 dark:bg-zinc-700 dark:text-zinc-200">
-          {user?.display_name?.[0] ?? '?'}
-        </span>
-        {!compact && (
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">{user?.display_name}</p>
-            {isGuest && <Badge tone="amber">somente leitura</Badge>}
-          </div>
-        )}
-      </div>
-      <button
-        onClick={logout}
-        className="flex items-center gap-2 rounded-lg text-sm text-zinc-500 transition-colors hover:text-zinc-800 dark:hover:text-zinc-100"
-      >
-        <LogoutIcon className="size-4" /> {compact ? '' : 'Sair'}
-      </button>
-    </div>
+    <NavLink
+      to="/settings"
+      className={({ isActive }) =>
+        `flex items-center gap-2.5 rounded-lg ${compact ? '' : 'p-1'} ${
+          isActive && !compact ? 'bg-zinc-100 dark:bg-zinc-800' : ''
+        }`
+      }
+    >
+      <Avatar src={user?.avatar_url} name={user?.display_name} className="size-9" />
+      {!compact && (
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold">{user?.display_name}</p>
+          {isGuest ? (
+            <Badge tone="amber">somente leitura</Badge>
+          ) : (
+            <p className="text-xs text-zinc-400">ver perfil</p>
+          )}
+        </div>
+      )}
+    </NavLink>
   )
 }
 
@@ -89,29 +88,43 @@ function NavItem({ to, label, Icon, variant = 'desktop' }) {
 }
 
 export default function Layout() {
+  const { logout } = useAuth()
+
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-6xl">
+      {/* faixa da bandeira no topo */}
+      <div className="fixed inset-x-0 top-0 z-20 h-1 bg-gradient-to-r from-black via-[#DD0000] to-[#FFCE00]" />
+
       {/* Sidebar — desktop */}
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-zinc-200 p-4 md:flex dark:border-zinc-800">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-zinc-200 p-4 pt-5 md:flex dark:border-zinc-800">
         <Logo />
         <nav className="mt-8 flex flex-1 flex-col gap-1">
           {NAV.map((item) => (
             <NavItem key={item.to} {...item} />
           ))}
+          <NavItem to="/settings" label="Configurações" Icon={SettingsIcon} />
         </nav>
-        <div className="flex items-center justify-between border-t border-zinc-200 pt-4 dark:border-zinc-800">
-          <UserBlock />
-          <ThemeToggle />
+        <div className="space-y-2 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+          <div className="flex items-center justify-between">
+            <ProfileLink />
+            <ThemeToggle />
+          </div>
+          <button
+            onClick={logout}
+            className="flex items-center gap-2 px-1 text-sm text-zinc-500 transition-colors hover:text-zinc-800 dark:hover:text-zinc-100"
+          >
+            <LogoutIcon className="size-4" /> Sair
+          </button>
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Topbar — celular */}
-        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-200 bg-zinc-50/90 px-4 py-3 backdrop-blur md:hidden dark:border-zinc-800 dark:bg-zinc-950/90">
+        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-200 bg-zinc-50/90 px-4 py-3 pt-4 backdrop-blur md:hidden dark:border-zinc-800 dark:bg-zinc-950/90">
           <Logo />
           <div className="flex items-center gap-1">
             <ThemeToggle />
-            <UserBlock compact />
+            <ProfileLink compact />
           </div>
         </header>
 
@@ -126,6 +139,7 @@ export default function Layout() {
           {NAV.map((item) => (
             <NavItem key={item.to} {...item} variant="mobile" />
           ))}
+          <NavItem to="/settings" label="Perfil" Icon={SettingsIcon} variant="mobile" />
         </nav>
       </div>
     </div>

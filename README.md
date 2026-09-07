@@ -22,20 +22,24 @@ tests, and a React frontend wired to it — not a pile of automation scripts.
 
 ## Screenshots
 
-| Login (first-use claim) | Flashcards (SM-2) | Bureaucracy roleplay | Couple dashboard (dark) |
+| Login (first-use claim) | Flashcards (SM-2) | Profile settings | Couple dashboard (dark) |
 |---|---|---|---|
-| ![Login](docs/screenshots/login.png) | ![Flashcards](docs/screenshots/flashcards.png) | ![Roleplay](docs/screenshots/scenario.png) | ![Dashboard](docs/screenshots/dashboard.png) |
+| ![Login](docs/screenshots/login.png) | ![Flashcards](docs/screenshots/flashcards.png) | ![Settings](docs/screenshots/settings.png) | ![Dashboard](docs/screenshots/dashboard.png) |
 
 ## Features
 
-- **Spaced-repetition flashcards** — the SM-2 algorithm (the one Anki is based on).
-  Each card has a Portuguese phrase, its German translation, and a homemade phonetic
-  hint (`"Wie geht's"` → `"Ví guêts"`). Cards can be shared or private, and the
-  review schedule is **per user** — a shared card advances independently for each person.
-- **Bureaucracy scenarios** — scripted dialogues with a clerk in German and 2–3
+- **Spaced-repetition flashcards** — the SM-2 algorithm (the one Anki is based on),
+  over a ~75-card starter deck across 15 themes (numbers, time, family, food, transport,
+  health, small talk…). Each card has a Portuguese phrase, its German translation, and a
+  homemade phonetic hint (`"Wie geht's"` → `"Ví guêts"`). Cards can be shared or private,
+  and the review schedule is **per user** — a shared card advances independently for each person.
+- **Everyday-situation scenarios** — 7 scripted dialogues (Anmeldung, bank, apartment
+  viewing, doctor, supermarket, bakery, booking an appointment by phone) with 2–3
   multiple-choice replies. Picking a less natural answer shows *why* the better one fits.
 - **Couple mode** — points, current/longest streak, cards reviewed and scenarios
   completed for the two users side by side. All derived by SQL aggregation, no scoreboard table.
+- **Accounts & profile** — JWT auth, a first-use password claim, a read-only guest role,
+  plus a settings screen to change the password and set a profile photo.
 
 ## Tech stack
 
@@ -53,7 +57,7 @@ tests, and a React frontend wired to it — not a pile of automation scripts.
 ```
 backend/
   app/
-    main.py        FastAPI app, CORS, routers
+    main.py        FastAPI app, CORS, startup migration, routers
     auth.py        argon2 hashing + JWT
     deps.py        session, current user, writer-only guard
     models.py      SQLAlchemy models (commented)
@@ -61,15 +65,15 @@ backend/
     srs.py         SM-2 algorithm — pure, no framework
     scoring.py     points rules
     stats.py       streak + dashboard aggregation
-    routers/       auth · cards · reviews · scenarios · dashboard
+    routers/       auth (login + profile) · cards · reviews · scenarios · dashboard
     seed.py        loads app/data/seed_data.py
   tests/           pytest — SM-2, auth, and every endpoint
 frontend/
   src/
     auth/          AuthContext — token + session (localStorage)
     lib/           api client, theme hook
-    components/    Layout (sidebar + mobile tab bar), ui, icons
-    pages/         Login · Review · Scenarios · Dashboard
+    components/    Layout (sidebar + mobile tab bar), Logo, ui, icons
+    pages/         Login · Review · Scenarios · Dashboard · Settings
 docs/
   DESIGN.md        schema, algorithm and API spec (written before the code)
 ```
@@ -87,7 +91,7 @@ Requires Python 3.11+ and Node 18+.
 cd backend
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-python -m app.seed                 # 3 accounts, ~17 cards, 3 scenarios, sample activity
+python -m app.seed                 # 3 accounts, ~75 cards, 7 scenarios, sample activity
 uvicorn app.main:app --reload      # http://localhost:8000/docs
 ```
 
@@ -117,6 +121,7 @@ read-only access.
 | `GET` | `/api/auth/accounts` | the fixed accounts and whether each has a password yet |
 | `POST` | `/api/auth/claim` · `/api/auth/login` | set the password on first use / log in — both return a token |
 | `POST` | `/api/auth/guest` | read-only token for recruiters |
+| `PATCH` | `/api/auth/me` · `POST /api/auth/change-password` | update name/photo · rotate the password |
 | `GET` | `/api/reviews/due` | cards due for review |
 | `POST` | `/api/reviews` | submit a grade (0–5); runs SM-2, logs it, returns the next interval |
 | `GET` | `/api/scenarios` · `/api/scenarios/{slug}` | list / detail with steps and options |
@@ -163,7 +168,6 @@ so it's a no-op once the data exists.
 
 ## Roadmap
 
-- Password reset / rotation (currently a claimed password can't be changed in-app)
-- Alembic migrations (schema currently created with `create_all`)
+- Alembic migrations (schema currently created with `create_all` + a small startup ALTER)
 - GitHub Actions running `pytest` + `npm run build` on every push
 - Audio for pronunciation hints
