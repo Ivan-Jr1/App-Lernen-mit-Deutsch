@@ -55,6 +55,7 @@ Dois registros fixos criados por seed.
 | password_hash | str, nullable | Argon2. Nulo = conta ainda não reivindicada (define a senha no 1º acesso). Sempre nulo para o visitante. |
 | is_guest      | bool        | `true` = conta de visitante (somente leitura), fora do dashboard do casal |
 | avatar_url    | text, nullable | Foto de perfil como data URI (o cliente redimensiona para ~256px antes de enviar) |
+| daily_goal    | int, default 20 | Meta de cartões por dia (1–200). A fila de revisão é limitada a esse número por padrão. |
 | created_at    | datetime    | |
 
 ### 4.2 `cards`
@@ -202,6 +203,16 @@ due_date = hoje + interval dias
 Um cartão está "vencido" para um usuário quando `due_date <= hoje` — ou quando
 ainda não existe `review_state` para aquele `(usuário, cartão)` (cartão novo).
 
+### 5.1 Meta diária
+
+Cada usuário tem `daily_goal` (padrão 20). Por padrão, `GET /api/reviews/due`
+devolve no máximo `daily_goal - (revisões já feitas hoje)` cartões — vencidos
+primeiro. A resposta também informa `reviewed_today` e `due_total` (quantos há de
+fato), para o cliente mostrar o progresso e oferecer "revisar mais". Com
+`include_all=true` a fila vem inteira (teto de 100).
+
+"Revisões feitas hoje" = `count(review_logs)` do dia no fuso `Europe/Berlin`.
+
 ## 6. Pontos e streak (dashboard do casal)
 
 Derivados de `review_logs` e `scenario_attempts` — não há tabela de placar
@@ -221,7 +232,8 @@ ou um cenário concluído.
   histórico.
 
 **Números do dashboard, por usuário**: pontos totais, streak atual, streak
-recorde, total de cartões revisados (`count(review_logs)`), cenários concluídos
+recorde, cartões revisados hoje (`reviewed_today`) e a meta (`daily_goal`), total
+de cartões revisados (`count(review_logs)`), cenários concluídos
 (`count(scenario_attempts where is_completed)`).
 
 ## 7. Superfície da API
@@ -237,7 +249,7 @@ POST /api/auth/claim                       body: {username, password} — define
 POST /api/auth/login                       body: {username, password} — devolve token
 POST /api/auth/guest                       devolve token somente leitura (visitante)
 GET  /api/auth/me                          confirma a sessão atual
-PATCH /api/auth/me                         body: {display_name?, avatar_url?} — atualiza o perfil  [escrita]
+PATCH /api/auth/me                         body: {display_name?, avatar_url?, daily_goal?} — atualiza o perfil  [escrita]
 POST /api/auth/change-password             body: {current_password, new_password}                  [escrita]
 
 GET  /api/cards?category=                  lista cartões visíveis ao usuário
@@ -246,7 +258,7 @@ GET  /api/cards/{id}
 PUT  /api/cards/{id}                                                                  [escrita]
 DELETE /api/cards/{id}                                                                [escrita]
 
-GET  /api/reviews/due?limit=               cartões vencidos para revisão
+GET  /api/reviews/due?include_all=        fila do dia (limitada à meta) + {daily_goal, reviewed_today, due_total, cards}
 POST /api/reviews                          body: {card_id, grade} — aplica SM-2, grava log  [escrita]
 
 GET  /api/scenarios                        lista cenários

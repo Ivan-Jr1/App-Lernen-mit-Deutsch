@@ -9,6 +9,7 @@ from app.schemas import DashboardOut, UserProgress
 from app.stats import (
     current_streak,
     longest_streak,
+    reviews_today,
     study_days,
     today_in_study_tz,
 )
@@ -69,6 +70,8 @@ def get_dashboard(db: DbSession, current_user: Reader):
                 total_cards_reviewed=cards_reviewed,
                 scenarios_completed=scenarios_completed,
                 cards_due_today=_cards_due_today(db, user, today),
+                reviewed_today=reviews_today(db, user.id),
+                daily_goal=user.daily_goal,
             )
         )
 

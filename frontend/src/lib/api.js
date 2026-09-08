@@ -69,8 +69,10 @@ export const api = {
       body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
     }),
 
-  // Flashcards
-  dueCards: (limit = 60) => request(`/api/reviews/due?limit=${limit}`),
+  // Flashcards — { daily_goal, reviewed_today, due_total, cards }.
+  // Por padrão a fila vem limitada à meta diária; all:true traz todos os vencidos.
+  dueCards: ({ all = false } = {}) =>
+    request(`/api/reviews/due${all ? '?include_all=true' : ''}`),
   submitReview: (cardId, grade) =>
     request('/api/reviews', {
       method: 'POST',

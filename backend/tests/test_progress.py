@@ -2,7 +2,7 @@
 
 
 def _study_a_bit(client, headers):
-    for card in client.get("/api/reviews/due", headers=headers).json()[:2]:
+    for card in client.get("/api/reviews/due", headers=headers).json()["cards"][:2]:
         client.post("/api/reviews", headers=headers, json={"card_id": card["id"], "grade": 5})
     scenario = client.get("/api/scenarios/anmeldung", headers=headers).json()
     attempt_id = client.post(

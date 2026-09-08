@@ -35,15 +35,18 @@ tests, and a React frontend wired to it — not a pile of automation scripts.
   over a ~75-card starter deck across 15 themes (numbers, time, family, food, transport,
   health, small talk…). Each card has a Portuguese phrase, its German translation, and a
   homemade phonetic hint (`"Wie geht's"` → `"Ví guêts"`). Flipping a card speaks the
-  German answer aloud (browser `speechSynthesis`). Cards can be shared or private, and the
-  review schedule is **per user** — a shared card advances independently for each person.
+  German answer aloud (browser `speechSynthesis`, adjustable speed). Cards can be shared or
+  private, and the review schedule is **per user** — a shared card advances independently
+  for each person. A per-user **daily goal** caps the review queue so a big pile isn't
+  overwhelming; you can always choose to keep going past it.
 - **Everyday-situation scenarios** — 7 scripted dialogues (Anmeldung, bank, apartment
   viewing, doctor, supermarket, bakery, booking an appointment by phone) with 2–3
   multiple-choice replies. Picking a less natural answer shows *why* the better one fits.
-- **Couple mode** — points, current/longest streak, cards reviewed and scenarios
-  completed for the two users side by side. All derived by SQL aggregation, no scoreboard table.
+- **Couple mode** — points, current/longest streak, cards reviewed today vs. the daily
+  goal, total cards reviewed and scenarios completed for the two users side by side. All
+  derived by SQL aggregation, no scoreboard table.
 - **Accounts & profile** — JWT auth, a first-use password claim, a read-only guest role,
-  plus a settings screen to change the password and set a profile photo.
+  plus a settings screen for the password, profile photo, daily goal and voice speed.
 
 ## Tech stack
 
@@ -125,8 +128,8 @@ read-only access.
 | `GET` | `/api/auth/accounts` | the fixed accounts and whether each has a password yet |
 | `POST` | `/api/auth/claim` · `/api/auth/login` | set the password on first use / log in — both return a token |
 | `POST` | `/api/auth/guest` | read-only token for recruiters |
-| `PATCH` | `/api/auth/me` · `POST /api/auth/change-password` | update name/photo · rotate the password |
-| `GET` | `/api/reviews/due` | cards due for review |
+| `PATCH` | `/api/auth/me` · `POST /api/auth/change-password` | update name/photo/daily goal · rotate the password |
+| `GET` | `/api/reviews/due` | the day's queue (capped to the daily goal; `?include_all=true` for everything) plus goal progress |
 | `POST` | `/api/reviews` | submit a grade (0–5); runs SM-2, logs it, returns the next interval |
 | `GET` | `/api/scenarios` · `/api/scenarios/{slug}` | list / detail with steps and options |
 | `POST` | `/api/scenarios/{slug}/attempts` · `/api/attempts/{id}/answers` | start a playthrough / answer a step |

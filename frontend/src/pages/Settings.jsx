@@ -64,10 +64,15 @@ function ProfileCard() {
   const fileInput = useRef(null)
   const [name, setName] = useState(user.display_name)
   const [avatar, setAvatar] = useState(user.avatar_url ?? null)
+  const [goal, setGoal] = useState(user.daily_goal)
   const [saving, setSaving] = useState(false)
   const [feedback, setFeedback] = useState(null)
 
-  const dirty = name !== user.display_name || avatar !== (user.avatar_url ?? null)
+  const goalValid = Number.isInteger(goal) && goal >= 1 && goal <= 200
+  const dirty =
+    name !== user.display_name ||
+    avatar !== (user.avatar_url ?? null) ||
+    goal !== user.daily_goal
 
   async function pickPhoto(event) {
     const file = event.target.files?.[0]
@@ -88,7 +93,11 @@ function ProfileCard() {
     setSaving(true)
     setFeedback(null)
     try {
-      const updated = await api.updateProfile({ display_name: name, avatar_url: avatar })
+      const updated = await api.updateProfile({
+        display_name: name,
+        avatar_url: avatar,
+        daily_goal: goal,
+      })
       updateUser(updated)
       setFeedback({ type: 'ok', message: 'Perfil salvo.' })
     } catch (err) {
@@ -143,7 +152,28 @@ function ProfileCard() {
         className="mt-1 w-full rounded-xl border border-zinc-300 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-zinc-700"
       />
 
-      <Button onClick={save} disabled={!dirty || saving || !name.trim()} className="mt-4">
+      <label className="mt-5 block text-sm font-medium" htmlFor="daily_goal">
+        Meta diária de cartões
+      </label>
+      <p className="text-xs text-zinc-500 dark:text-zinc-400">
+        A fila de revisão para nesse número por dia. Dá pra continuar além dela quando quiser.
+      </p>
+      <input
+        id="daily_goal"
+        type="number"
+        inputMode="numeric"
+        min={1}
+        max={200}
+        value={Number.isNaN(goal) ? '' : goal}
+        onChange={(e) => setGoal(parseInt(e.target.value, 10))}
+        className="mt-1 w-24 rounded-xl border border-zinc-300 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-zinc-700"
+      />
+
+      <Button
+        onClick={save}
+        disabled={!dirty || saving || !name.trim() || !goalValid}
+        className="mt-4"
+      >
         {saving ? 'Salvando…' : 'Salvar perfil'}
       </Button>
       <Feedback state={feedback} />

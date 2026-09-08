@@ -22,6 +22,9 @@ def _apply_pending_migrations() -> None:
         return
     with engine.begin() as connection:
         connection.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT"))
+        connection.execute(
+            text("ALTER TABLE users ADD COLUMN IF NOT EXISTS daily_goal INTEGER NOT NULL DEFAULT 20")
+        )
 
 
 _apply_pending_migrations()

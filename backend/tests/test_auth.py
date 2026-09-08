@@ -49,7 +49,7 @@ def test_login_antes_de_definir_senha_falha(client, seeded):
 def test_visitante_le_mas_nao_escreve(client, guest_headers):
     assert client.get("/api/scenarios", headers=guest_headers).status_code == 200
 
-    card_id = client.get("/api/reviews/due", headers=guest_headers).json()[0]["id"]
+    card_id = client.get("/api/reviews/due", headers=guest_headers).json()["cards"][0]["id"]
     blocked = client.post(
         "/api/reviews", headers=guest_headers, json={"card_id": card_id, "grade": 5}
     )
@@ -75,6 +75,18 @@ def test_atualizar_perfil_nome_e_foto(client, auth):
 
     me = client.get("/api/auth/me", headers=headers).json()
     assert me["avatar_url"] == "data:image/png;base64,AAAA"
+
+
+def test_atualizar_meta_diaria(client, auth):
+    headers = auth("ivan")
+    assert client.get("/api/auth/me", headers=headers).json()["daily_goal"] == 20
+
+    updated = client.patch("/api/auth/me", headers=headers, json={"daily_goal": 30})
+    assert updated.status_code == 200
+    assert updated.json()["daily_goal"] == 30
+
+    fora_do_limite = client.patch("/api/auth/me", headers=headers, json={"daily_goal": 0})
+    assert fora_do_limite.status_code == 422
 
 
 def test_visitante_nao_edita_perfil(client, guest_headers):

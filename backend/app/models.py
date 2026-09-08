@@ -43,6 +43,9 @@ class User(Base):
     is_guest: Mapped[bool] = mapped_column(Boolean, default=False)
     # Foto de perfil como data URI (o cliente já redimensiona antes de enviar).
     avatar_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Quantos cartões o usuário quer revisar por dia. A fila de revisão é limitada
+    # a esse número por padrão, para não assustar com pilhas grandes.
+    daily_goal: Mapped[int] = mapped_column(Integer, default=20)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     review_states: Mapped[list["ReviewState"]] = relationship(back_populates="user")

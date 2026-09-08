@@ -99,7 +99,9 @@ export default function Review() {
   const [flipped, setFlipped] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(0)
-  const [total, setTotal] = useState(0)
+  const [goal, setGoal] = useState(0)
+  const [reviewedToday, setReviewedToday] = useState(0)
+  const [dueTotal, setDueTotal] = useState(0)
   const [lastResult, setLastResult] = useState(null)
   const [muted, setMuted] = useState(() => {
     try {
@@ -118,22 +120,26 @@ export default function Review() {
     setSpeechRateState(next.value)
   }
 
-  const load = useCallback(() => {
+  const load = useCallback((includeAll = false) => {
     setQueue(null)
     setError(null)
     setFlipped(false)
     setDone(0)
     setLastResult(null)
     api
-      .dueCards()
-      .then((cards) => {
-        setQueue(cards)
-        setTotal(cards.length)
+      .dueCards({ all: includeAll })
+      .then((data) => {
+        setQueue(data.cards)
+        setGoal(data.daily_goal)
+        setReviewedToday(data.reviewed_today)
+        setDueTotal(data.due_total)
       })
       .catch((err) => setError(err.message))
   }, [])
 
-  useEffect(load, [load])
+  useEffect(() => {
+    load()
+  }, [load])
   useEffect(() => stopSpeaking, []) // silencia ao sair da tela
 
   function toggleMute() {
@@ -180,12 +186,28 @@ export default function Review() {
   if (queue === null) return <Spinner label="Buscando cartões vencidos…" />
 
   if (queue.length === 0) {
+    const studiedToday = reviewedToday + done
+    const goalReached = goal > 0 && studiedToday >= goal
+    const stillDue = Math.max(0, dueTotal - done)
+
     return (
-      <EmptyState icon="🎉" title="Fila zerada!">
-        {done > 0
-          ? `${done} ${done === 1 ? 'cartão revisado' : 'cartões revisados'} nesta sessão.`
-          : 'Nenhum cartão vencido agora. Volte mais tarde.'}
-        <div className="mt-4">
+      <EmptyState
+        icon={goalReached ? '🎯' : '🎉'}
+        title={goalReached ? 'Meta do dia batida!' : 'Fila zerada!'}
+      >
+        <p className="tabular-nums">
+          {studiedToday}/{goal} cartões hoje
+          {done > 0 && ` · ${done} nesta sessão`}.
+        </p>
+        <p className="mt-1">
+          {stillDue > 0
+            ? `Ainda há ${stillDue} ${stillDue === 1 ? 'cartão vencido' : 'cartões vencidos'} — pode parar por hoje ou seguir.`
+            : 'Nada mais vencido agora.'}
+        </p>
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+          {stillDue > 0 && !isGuest && (
+            <Button onClick={() => load(true)}>Revisar mais (+{stillDue})</Button>
+          )}
           <Link
             to="/dashboard"
             className="font-semibold text-indigo-600 underline underline-offset-4 dark:text-indigo-400"
@@ -198,7 +220,8 @@ export default function Review() {
   }
 
   const card = queue[0]
-  const progress = total ? (done / total) * 100 : 0
+  const studiedToday = reviewedToday + done
+  const progress = goal ? Math.min(100, (studiedToday / goal) * 100) : 0
 
   return (
     <div>
@@ -206,7 +229,9 @@ export default function Review() {
         <div className="mb-2 flex items-center justify-between text-xs font-medium text-zinc-500 dark:text-zinc-400">
           <span>{queue.length} na fila</span>
           <div className="flex items-center gap-3">
-            <span>{done} revisados</span>
+            <span className="tabular-nums">
+              {studiedToday}/{goal} · meta
+            </span>
             {speechSupported && !muted && (
               <button
                 onClick={cycleSpeechRate}

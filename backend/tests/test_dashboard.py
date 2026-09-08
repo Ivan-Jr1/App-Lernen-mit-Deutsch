@@ -17,7 +17,7 @@ def _complete_scenario(client, headers) -> None:
 
 def test_dashboard_agrega_pontos_streak_e_totais(client, auth):
     ivan = auth("ivan")
-    card_ids = [c["id"] for c in client.get("/api/reviews/due", headers=ivan).json()]
+    card_ids = [c["id"] for c in client.get("/api/reviews/due", headers=ivan).json()["cards"]]
     for card_id in card_ids:
         client.post("/api/reviews", headers=ivan, json={"card_id": card_id, "grade": 5})
     _complete_scenario(client, ivan)
@@ -33,10 +33,13 @@ def test_dashboard_agrega_pontos_streak_e_totais(client, auth):
     assert ivan_row["current_streak"] == 1
     assert ivan_row["longest_streak"] == 1
     assert ivan_row["cards_due_today"] == 0
+    assert ivan_row["reviewed_today"] == 2
+    assert ivan_row["daily_goal"] == 20
 
     assert gabriela_row["total_points"] == 0
     assert gabriela_row["current_streak"] == 0
     assert gabriela_row["cards_due_today"] == 2
+    assert gabriela_row["reviewed_today"] == 0
 
 
 def test_dashboard_nao_lista_o_visitante(client, guest_headers):

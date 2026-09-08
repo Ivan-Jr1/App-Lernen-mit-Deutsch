@@ -45,6 +45,14 @@ def today_in_study_tz() -> date:
     return datetime.now(ZoneInfo(settings.study_timezone)).date()
 
 
+def reviews_today(db: Session, user_id: int) -> int:
+    """Quantas revisões o usuário registrou hoje (no fuso de estudo)."""
+    tz = ZoneInfo(settings.study_timezone)
+    today = today_in_study_tz()
+    moments = db.scalars(select(ReviewLog.reviewed_at).where(ReviewLog.user_id == user_id))
+    return sum(1 for moment in moments if _local_date(moment, tz) == today)
+
+
 def current_streak(days: set[date], today: date) -> int:
     """Dias consecutivos terminando hoje (ou ontem, se ainda não estudou hoje)."""
     anchor = today if today in days else today - timedelta(days=1)

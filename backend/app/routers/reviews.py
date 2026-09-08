@@ -2,15 +2,18 @@
 
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import or_, select
 
 from app.deps import DbSession, Reader, Writer
 from app.models import Card, ReviewLog, ReviewState, User
-from app.schemas import DueCardOut, ReviewCreate, ReviewResult
+from app.schemas import DueCardOut, DueCardsOut, ReviewCreate, ReviewResult
 from app.scoring import points_for_review
 from app.srs import Sm2State, initial_state, review as apply_sm2
-from app.stats import today_in_study_tz
+from app.stats import reviews_today, today_in_study_tz
+
+# Teto de segurança para "revisar tudo" — evita devolver centenas de cartões.
+MAX_DUE_CARDS = 100
 
 router = APIRouter(prefix="/api/reviews", tags=["reviews"])
 
@@ -19,13 +22,17 @@ def _visible_to(user: User):
     return or_(Card.owner_id.is_(None), Card.owner_id == user.id)
 
 
-@router.get("/due", response_model=list[DueCardOut])
+@router.get("/due", response_model=DueCardsOut)
 def list_due_cards(
     db: DbSession,
     current_user: Reader,
-    limit: int = Query(default=20, ge=1, le=100),
+    include_all: bool = False,
 ):
-    """Cartões nunca revisados ou com vencimento até hoje, mais atrasados primeiro."""
+    """Cartões vencidos (ou novos), mais atrasados primeiro.
+
+    Por padrão a fila é limitada ao que falta para a meta diária do usuário;
+    `include_all=true` devolve todos os vencidos (até `MAX_DUE_CARDS`).
+    """
     today = today_in_study_tz()
 
     states = {
@@ -60,7 +67,17 @@ def list_due_cards(
         )
 
     due.sort(key=lambda c: (c.due_date is not None, c.due_date or today))
-    return due[:limit]
+
+    done_today = reviews_today(db, current_user.id)
+    remaining_for_goal = max(0, current_user.daily_goal - done_today)
+    cards = due if include_all else due[:remaining_for_goal]
+
+    return DueCardsOut(
+        daily_goal=current_user.daily_goal,
+        reviewed_today=done_today,
+        due_total=len(due),
+        cards=cards[:MAX_DUE_CARDS],
+    )
 
 
 @router.post("", response_model=ReviewResult, status_code=status.HTTP_201_CREATED)

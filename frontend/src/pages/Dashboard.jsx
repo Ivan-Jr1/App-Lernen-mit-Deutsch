@@ -10,6 +10,7 @@ const METRICS = [
   { key: 'total_points', label: 'Pontos' },
   { key: 'current_streak', label: 'Streak atual', format: days },
   { key: 'longest_streak', label: 'Streak recorde', format: days },
+  { key: 'reviewed_today', label: 'Cartões hoje' },
   { key: 'total_cards_reviewed', label: 'Cartões revisados' },
   { key: 'scenarios_completed', label: 'Cenários completados' },
 ]
@@ -29,6 +30,19 @@ function HeroCard({ user, leads }) {
         <FlameIcon className="size-4" />
         {days(user.current_streak)}
       </div>
+
+      <div className="mt-3">
+        <p className="text-xs font-medium tabular-nums text-zinc-500 dark:text-zinc-400">
+          Meta de hoje: {user.reviewed_today}/{user.daily_goal}
+        </p>
+        <div className="mx-auto mt-1 h-1.5 w-24 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+          <div
+            className="h-full rounded-full bg-indigo-500 transition-[width] duration-500"
+            style={{ width: `${Math.min(100, (user.reviewed_today / user.daily_goal) * 100)}%` }}
+          />
+        </div>
+      </div>
+
       {user.cards_due_today > 0 && (
         <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
           {user.cards_due_today} cartões esperando hoje

@@ -28,6 +28,7 @@ class AuthUser(BaseModel):
     display_name: str
     readonly: bool
     avatar_url: str | None = None
+    daily_goal: int = 20
 
 
 class TokenOut(BaseModel):
@@ -41,6 +42,7 @@ class ProfileUpdate(BaseModel):
     # data URI de imagem (ex.: "data:image/jpeg;base64,...") ou null para remover.
     # Limite generoso: o cliente redimensiona para ~256px antes de enviar.
     avatar_url: str | None = Field(default=None, max_length=350_000)
+    daily_goal: int | None = Field(default=None, ge=1, le=200)
 
 
 class PasswordChange(BaseModel):
@@ -87,6 +89,15 @@ class DueCardOut(CardOut):
     repetitions: int
     ease_factor: float
     is_new: bool
+
+
+class DueCardsOut(BaseModel):
+    """Fila de revisão do dia mais o progresso em relação à meta diária."""
+
+    daily_goal: int
+    reviewed_today: int
+    due_total: int  # total de cartões vencidos, ignorando o limite da meta
+    cards: list[DueCardOut]  # já limitado à meta, salvo quando include_all=true
 
 
 # --------------------------------------------------------------------------- #
@@ -195,6 +206,8 @@ class UserProgress(BaseModel):
     total_cards_reviewed: int
     scenarios_completed: int
     cards_due_today: int
+    reviewed_today: int
+    daily_goal: int
 
 
 class DashboardOut(BaseModel):
