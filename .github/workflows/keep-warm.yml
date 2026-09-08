@@ -1,0 +1,17 @@
+name: Keep API warm
+
+# O plano free do Render hiberna a API após 15 min ociosa e a primeira request
+# seguinte leva ~50 s. Este ping periódico mantém o serviço acordado.
+# (O agendamento do GitHub Actions é best-effort e pode atrasar alguns minutos.)
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        run: curl -fsS --max-time 60 https://deutsch-app-api.onrender.com/api/health

@@ -17,8 +17,11 @@ tests, and a React frontend wired to it — not a pile of automation scripts.
 **Live demo:** [app](https://app-deutsch-iota.vercel.app) · [API docs (Swagger)](https://deutsch-app-api.onrender.com/docs)
 — on the app, click **"Entrar como visitante"** for a read-only tour, no signup.
 
-> The API runs on Render's free tier, so it sleeps after 15 min idle — the first
-> request of the day can take ~50s while it wakes up.
+> The API runs on Render's free tier, which sleeps after 15 min idle (first
+> request then takes ~50s). A scheduled GitHub Action
+> ([`keep-warm.yml`](.github/workflows/keep-warm.yml)) pings `/api/health` every
+> 10 min to keep it awake; if it's been disabled, the frontend shows a
+> "server waking up" message instead of a bare spinner.
 
 ## Screenshots
 

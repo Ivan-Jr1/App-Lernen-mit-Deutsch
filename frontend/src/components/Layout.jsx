@@ -1,5 +1,6 @@
 // Casca do app: sidebar no desktop, barra inferior no celular.
 
+import { Suspense } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 
 import { useAuth } from '../auth/AuthContext.jsx'
@@ -14,7 +15,7 @@ import {
   SunIcon,
 } from './icons.jsx'
 import { Logo } from './Logo.jsx'
-import { Avatar, Badge } from './ui.jsx'
+import { Avatar, Badge, Spinner } from './ui.jsx'
 
 const NAV = [
   { to: '/review', label: 'Flashcards', Icon: CardsIcon },
@@ -130,7 +131,9 @@ export default function Layout() {
 
         <main className="flex-1 px-4 py-6 pb-24 md:px-10 md:py-10 md:pb-10">
           <div className="mx-auto max-w-2xl">
-            <Outlet />
+            <Suspense fallback={<Spinner />}>
+              <Outlet />
+            </Suspense>
           </div>
         </main>
 

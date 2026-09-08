@@ -11,6 +11,11 @@ const BASE = import.meta.env.VITE_API_URL ?? ''
 let authToken = null
 let handleUnauthorized = () => {}
 
+// Fica true assim que a API responde qualquer coisa nesta sessão. Usado para só
+// mostrar "acordando o servidor" enquanto o free tier do Render ainda hiberna.
+let serverHasResponded = false
+export const apiHasResponded = () => serverHasResponded
+
 export function setAuthToken(token) {
   authToken = token
 }
@@ -24,6 +29,7 @@ async function request(path, { authenticated = true, ...options } = {}) {
   if (authenticated && authToken) headers.Authorization = `Bearer ${authToken}`
 
   const response = await fetch(`${BASE}${path}`, { ...options, headers })
+  serverHasResponded = true
 
   if (response.status === 401) {
     handleUnauthorized()
@@ -37,6 +43,9 @@ async function request(path, { authenticated = true, ...options } = {}) {
 }
 
 export const api = {
+  // Health check — usado no boot para acordar o Render o quanto antes
+  health: () => request('/api/health', { authenticated: false }),
+
   // Autenticação (sem token)
   accounts: () => request('/api/auth/accounts', { authenticated: false }),
   claim: (username, password) =>

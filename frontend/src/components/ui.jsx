@@ -1,5 +1,9 @@
 // Peças de UI reaproveitadas. Mantidas pequenas e sem estado.
 
+import { useEffect, useState } from 'react'
+
+import { apiHasResponded } from '../lib/api.js'
+
 const BUTTON_VARIANTS = {
   primary:
     'bg-indigo-600 text-white hover:bg-indigo-500 active:bg-indigo-700 disabled:bg-indigo-600/50',
@@ -31,10 +35,23 @@ export function Card({ className = '', ...props }) {
 }
 
 export function Spinner({ label }) {
+  // Se a espera passar de alguns segundos e a API ainda não respondeu nesta
+  // sessão, provavelmente o servidor gratuito está acordando — avisa o usuário.
+  const [waking, setWaking] = useState(false)
+  useEffect(() => {
+    const timer = setTimeout(() => setWaking(true), 4000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  const message =
+    waking && !apiHasResponded()
+      ? 'O servidor gratuito estava dormindo — acordando, leva ~30 s na primeira vez…'
+      : label
+
   return (
-    <div className="flex flex-col items-center gap-3 py-16 text-sm text-zinc-400">
+    <div className="mx-auto flex max-w-xs flex-col items-center gap-3 py-16 text-center text-sm text-zinc-400">
       <span className="size-6 animate-spin rounded-full border-2 border-zinc-300 border-t-indigo-500 dark:border-zinc-700 dark:border-t-indigo-400" />
-      {label}
+      {message}
     </div>
   )
 }

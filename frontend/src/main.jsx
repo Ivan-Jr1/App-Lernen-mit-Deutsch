@@ -1,15 +1,24 @@
-import { StrictMode } from 'react'
+import { lazy, StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 
 import { AuthProvider, useAuth } from './auth/AuthContext.jsx'
+import { api } from './lib/api.js'
 import Layout from './components/Layout.jsx'
-import Dashboard from './pages/Dashboard.jsx'
-import Login from './pages/Login.jsx'
-import Review from './pages/Review.jsx'
-import Scenarios from './pages/Scenarios.jsx'
-import Settings from './pages/Settings.jsx'
+import { Spinner } from './components/ui.jsx'
 import './index.css'
+
+// Cada página vira um chunk separado: a tela de Login não baixa mais o código
+// de Dashboard/Review/Scenarios/Settings junto.
+const Dashboard = lazy(() => import('./pages/Dashboard.jsx'))
+const Login = lazy(() => import('./pages/Login.jsx'))
+const Review = lazy(() => import('./pages/Review.jsx'))
+const Scenarios = lazy(() => import('./pages/Scenarios.jsx'))
+const Settings = lazy(() => import('./pages/Settings.jsx'))
+
+// Acorda a API do Render (free tier hiberna após 15 min) já no carregamento,
+// em paralelo com o resto — encurta a espera da primeira tela.
+api.health().catch(() => {})
 
 function RequireAuth() {
   const { isAuthenticated } = useAuth()
@@ -40,7 +49,15 @@ const router = createBrowserRouter([
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
-      <RouterProvider router={router} />
+      <Suspense
+        fallback={
+          <div className="grid min-h-screen place-items-center">
+            <Spinner />
+          </div>
+        }
+      >
+        <RouterProvider router={router} />
+      </Suspense>
     </AuthProvider>
   </StrictMode>,
 )
