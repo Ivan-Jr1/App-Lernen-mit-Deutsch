@@ -3,7 +3,14 @@ import { Link } from 'react-router-dom'
 
 import { useAuth } from '../auth/AuthContext.jsx'
 import { api } from '../lib/api.js'
-import { speakGerman, speechSupported, stopSpeaking } from '../lib/speech.js'
+import {
+  getSpeechRate,
+  setSpeechRate,
+  speakGerman,
+  SPEECH_SPEED_PRESETS,
+  speechSupported,
+  stopSpeaking,
+} from '../lib/speech.js'
 import { SpeakerIcon, SpeakerOffIcon } from '../components/icons.jsx'
 import { Button, EmptyState, ErrorState, Spinner } from '../components/ui.jsx'
 
@@ -101,6 +108,15 @@ export default function Review() {
       return false
     }
   })
+  const [speechRate, setSpeechRateState] = useState(getSpeechRate)
+
+  // Percorre as velocidades disponíveis (da mais lenta à mais rápida, com volta).
+  function cycleSpeechRate() {
+    const index = SPEECH_SPEED_PRESETS.findIndex((preset) => preset.value === speechRate)
+    const next = SPEECH_SPEED_PRESETS[(index + 1) % SPEECH_SPEED_PRESETS.length]
+    setSpeechRate(next.value)
+    setSpeechRateState(next.value)
+  }
 
   const load = useCallback(() => {
     setQueue(null)
@@ -191,6 +207,16 @@ export default function Review() {
           <span>{queue.length} na fila</span>
           <div className="flex items-center gap-3">
             <span>{done} revisados</span>
+            {speechSupported && !muted && (
+              <button
+                onClick={cycleSpeechRate}
+                aria-label="Velocidade da voz"
+                title="Velocidade da voz"
+                className="rounded-lg px-1.5 py-1 font-semibold tabular-nums text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+              >
+                {speechRate}×
+              </button>
+            )}
             {speechSupported && (
               <button
                 onClick={toggleMute}

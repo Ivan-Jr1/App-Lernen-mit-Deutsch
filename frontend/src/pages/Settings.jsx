@@ -1,8 +1,24 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { useAuth } from '../auth/AuthContext.jsx'
 import { api } from '../lib/api.js'
-import { CameraIcon, CheckIcon, ChartIcon, LockIcon, TrashIcon, UserIcon } from '../components/icons.jsx'
+import {
+  getSpeechRate,
+  setSpeechRate,
+  speakGerman,
+  SPEECH_SPEED_PRESETS,
+  speechSupported,
+  stopSpeaking,
+} from '../lib/speech.js'
+import {
+  CameraIcon,
+  CheckIcon,
+  ChartIcon,
+  LockIcon,
+  SpeakerIcon,
+  TrashIcon,
+  UserIcon,
+} from '../components/icons.jsx'
 import { Avatar, Button, Card, EmptyState } from '../components/ui.jsx'
 
 // Redimensiona a imagem no cliente para 256x256 (corte central) e devolve um
@@ -247,6 +263,62 @@ function ResetScoreCard() {
   )
 }
 
+// Exemplo curto para o usuário ouvir a diferença ao trocar a velocidade.
+const VOICE_SAMPLE = 'Guten Tag! Ich möchte mich anmelden.'
+
+function VoiceCard() {
+  const [rate, setRate] = useState(getSpeechRate)
+
+  useEffect(() => stopSpeaking, []) // silencia ao sair da tela
+
+  function choose(value) {
+    setSpeechRate(value)
+    setRate(value)
+    speakGerman(VOICE_SAMPLE) // toca um exemplo na nova velocidade
+  }
+
+  return (
+    <Card className="p-5">
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-500 dark:text-zinc-400">
+        <SpeakerIcon className="size-4" /> Voz
+      </h2>
+      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+        Velocidade da fala em alemão nos flashcards e cenários.
+      </p>
+
+      {speechSupported ? (
+        <>
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {SPEECH_SPEED_PRESETS.map((speed) => (
+              <button
+                key={speed.value}
+                onClick={() => choose(speed.value)}
+                className={`rounded-xl border px-2 py-3 text-xs font-semibold transition-colors ${
+                  rate === speed.value
+                    ? 'border-indigo-500 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300'
+                    : 'border-zinc-200 bg-white text-zinc-600 hover:border-indigo-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300'
+                }`}
+              >
+                {speed.label}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => speakGerman(VOICE_SAMPLE)}
+            className="mt-3 text-sm font-medium text-indigo-600 underline underline-offset-4 hover:opacity-80 dark:text-indigo-400"
+          >
+            Ouvir exemplo de novo
+          </button>
+        </>
+      ) : (
+        <p className="mt-3 text-sm text-zinc-400">
+          Este navegador não tem síntese de voz disponível.
+        </p>
+      )}
+    </Card>
+  )
+}
+
 export default function Settings() {
   const { isGuest } = useAuth()
 
@@ -262,6 +334,7 @@ export default function Settings() {
     <div className="space-y-4">
       <h1 className="text-xl font-bold tracking-tight">Configurações</h1>
       <ProfileCard />
+      <VoiceCard />
       <PasswordCard />
       <ResetScoreCard />
     </div>
