@@ -1,4 +1,4 @@
-# Deutsch App — Documento de Design
+# Learning Languages — Documento de Design
 
 > Spec escrita **antes** da implementação. Serve como referência para o backend,
 > o frontend e a leitura técnica por recrutadores.

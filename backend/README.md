@@ -1,7 +1,8 @@
-# Deutsch App — Backend
+# Learning Languages — Backend
 
-API REST em FastAPI para estudo de alemão: flashcards com repetição espaçada
-(SM-2), cenários de burocracia em roleplay e dashboard de progresso do casal.
+API REST em FastAPI para estudo de idiomas (alemão e inglês): flashcards com
+repetição espaçada (SM-2), diálogos do dia a dia em roleplay e dashboard de
+progresso do casal.
 
 O design completo (schema, algoritmo, regras de pontuação, superfície da API)
 está em [`../docs/DESIGN.md`](../docs/DESIGN.md).

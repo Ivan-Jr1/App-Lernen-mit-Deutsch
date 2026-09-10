@@ -1,18 +1,21 @@
-# 🇩🇪 Deutsch App
+# Learning Languages
 
 A personal app I built to learn German effectively ahead of a real move to Berlin —
 and to have a genuine project in my portfolio while moving from database administration
-into software development.
+into software development. It started German-only; English was added later, so the
+app now carries a deck per language and you pick which one you're studying.
 
 I study with it every day: spaced-repetition flashcards (SM-2), multiple-choice
-roleplays of German bureaucracy (Anmeldung, opening a bank account, apartment viewings),
-and a two-person progress dashboard my partner and I use for friendly competition.
+roleplays of everyday situations (German bureaucracy — Anmeldung, opening a bank
+account, apartment viewings; English — airport check-in, a job interview, a doctor's
+visit), and a two-person progress dashboard my partner and I use for friendly
+competition.
 
 On the engineering side it's a full-stack app with a REST API, a real domain model,
 tests, and a React frontend wired to it — not a pile of automation scripts.
 
-> The app UI is in Portuguese on purpose: it teaches Portuguese speakers German.
-> All code identifiers, commits and docs are in English.
+> The app UI is in Portuguese on purpose: it teaches Portuguese speakers German and
+> English. All code identifiers, commits and docs are in English.
 
 **Live demo:** [app](https://app-deutsch-iota.vercel.app) · [API docs (Swagger)](https://deutsch-app-api.onrender.com/docs)
 — on the app, click **"Entrar como visitante"** for a read-only tour, no signup.

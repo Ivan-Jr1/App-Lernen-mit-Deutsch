@@ -93,8 +93,8 @@ export default function Layout() {
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-6xl">
-      {/* faixa da bandeira no topo */}
-      <div className="fixed inset-x-0 top-0 z-20 h-1 bg-gradient-to-r from-black via-[#DD0000] to-[#FFCE00]" />
+      {/* faixa de destaque no topo */}
+      <div className="fixed inset-x-0 top-0 z-20 h-1 bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-500" />
 
       {/* Sidebar — desktop */}
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-zinc-200 p-4 pt-5 md:flex dark:border-zinc-800">

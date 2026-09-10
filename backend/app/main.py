@@ -67,10 +67,11 @@ if settings.seed_on_startup:
     seed_database()
 
 app = FastAPI(
-    title="Deutsch App API",
+    title="Learning Languages API",
     description=(
-        "API de estudo de alemão: flashcards com repetição espaçada (SM-2), "
-        "cenários de burocracia em roleplay e dashboard de progresso do casal."
+        "API de estudo de idiomas (alemão e inglês): flashcards com repetição "
+        "espaçada (SM-2), diálogos do dia a dia em roleplay e dashboard de "
+        "progresso do casal."
     ),
     version="0.1.0",
 )
