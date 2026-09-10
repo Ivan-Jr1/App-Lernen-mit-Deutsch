@@ -58,9 +58,9 @@ export default function Login() {
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <LogoMark className="mx-auto size-14 rounded-2xl" />
-          <h1 className="mt-4 text-2xl font-bold tracking-tight">Deutsch App</h1>
+          <h1 className="mt-4 text-2xl font-bold tracking-tight">Learning Languages</h1>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Alemão para a mudança pra Berlim
+            Alemão e inglês, um cartão de cada vez
           </p>
         </div>
 

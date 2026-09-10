@@ -1,7 +1,7 @@
 {
-  "name": "Deutsch App",
-  "short_name": "Deutsch",
-  "description": "Flashcards com repetição espaçada e cenários de burocracia para aprender alemão.",
+  "name": "Learning Languages",
+  "short_name": "Languages",
+  "description": "Flashcards com repetição espaçada e diálogos do dia a dia para aprender alemão e inglês.",
   "start_url": "/review",
   "scope": "/",
   "display": "standalone",
