@@ -120,7 +120,7 @@ function ProfileCard() {
           <Avatar src={avatar} name={name} className="size-20 text-2xl" />
           <button
             onClick={() => fileInput.current?.click()}
-            className="absolute -bottom-1 -right-1 grid size-8 place-items-center rounded-full bg-indigo-600 text-white ring-2 ring-white hover:bg-indigo-500 dark:ring-zinc-900"
+            className="absolute -bottom-1 -right-1 grid size-8 place-items-center rounded-full bg-accent-600 text-white ring-2 ring-white hover:bg-accent-500 dark:ring-zinc-900"
             aria-label="Trocar foto"
           >
             <CameraIcon className="size-4" />
@@ -151,7 +151,7 @@ function ProfileCard() {
         value={name}
         maxLength={60}
         onChange={(e) => setName(e.target.value)}
-        className="mt-1 w-full rounded-xl border border-zinc-300 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-zinc-700"
+        className="mt-1 w-full rounded-xl border border-zinc-300 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-zinc-700"
       />
 
       <label className="mt-5 block text-sm font-medium" htmlFor="daily_goal">
@@ -168,7 +168,7 @@ function ProfileCard() {
         max={200}
         value={Number.isNaN(goal) ? '' : goal}
         onChange={(e) => setGoal(parseInt(e.target.value, 10))}
-        className="mt-1 w-24 rounded-xl border border-zinc-300 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-zinc-700"
+        className="mt-1 w-24 rounded-xl border border-zinc-300 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-zinc-700"
       />
 
       <Button
@@ -212,7 +212,7 @@ function PasswordCard() {
   }
 
   const field =
-    'mt-1 w-full rounded-xl border border-zinc-300 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-zinc-700'
+    'mt-1 w-full rounded-xl border border-zinc-300 bg-transparent px-3 py-2.5 text-sm outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-zinc-700'
 
   return (
     <Card className="p-5">
@@ -344,8 +344,8 @@ function LanguageCard() {
             disabled={saving !== null}
             className={`rounded-xl border px-2 py-3 text-sm font-semibold transition-colors disabled:opacity-50 ${
               language.code === user.learning_language
-                ? 'border-indigo-500 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300'
-                : 'border-zinc-200 bg-white text-zinc-600 hover:border-indigo-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300'
+                ? 'border-accent-500 bg-accent-50 text-accent-700 dark:bg-accent-950/50 dark:text-accent-300'
+                : 'border-zinc-200 bg-white text-zinc-600 hover:border-accent-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300'
             }`}
           >
             {saving === language.code ? 'Trocando…' : language.name}
@@ -388,8 +388,8 @@ function VoiceCard() {
                 onClick={() => choose(speed.value)}
                 className={`rounded-xl border px-2 py-3 text-xs font-semibold transition-colors ${
                   rate === speed.value
-                    ? 'border-indigo-500 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300'
-                    : 'border-zinc-200 bg-white text-zinc-600 hover:border-indigo-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300'
+                    ? 'border-accent-500 bg-accent-50 text-accent-700 dark:bg-accent-950/50 dark:text-accent-300'
+                    : 'border-zinc-200 bg-white text-zinc-600 hover:border-accent-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300'
                 }`}
               >
                 {speed.label}
@@ -398,7 +398,7 @@ function VoiceCard() {
           </div>
           <button
             onClick={() => speak(sample, user.learning_language)}
-            className="mt-3 text-sm font-medium text-indigo-600 underline underline-offset-4 hover:opacity-80 dark:text-indigo-400"
+            className="mt-3 text-sm font-medium text-accent-600 underline underline-offset-4 hover:opacity-80 dark:text-accent-400"
           >
             Ouvir exemplo de novo
           </button>

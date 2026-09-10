@@ -15,12 +15,12 @@ function ScenarioList({ scenarios, onPick }) {
         <li key={scenario.slug}>
           <button
             onClick={() => onPick(scenario.slug)}
-            className="group w-full rounded-2xl border border-zinc-200 bg-white p-5 text-left shadow-sm transition-colors hover:border-indigo-400 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-indigo-500"
+            className="group w-full rounded-2xl border border-zinc-200 bg-white p-5 text-left shadow-sm transition-colors hover:border-accent-400 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-accent-500"
           >
             <span className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
               {scenario.category}
             </span>
-            <p className="mt-1 font-semibold text-zinc-900 group-hover:text-indigo-600 dark:text-zinc-50 dark:group-hover:text-indigo-400">
+            <p className="mt-1 font-semibold text-zinc-900 group-hover:text-accent-600 dark:text-zinc-50 dark:group-hover:text-accent-400">
               {scenario.title}
             </p>
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{scenario.description}</p>
@@ -32,7 +32,7 @@ function ScenarioList({ scenarios, onPick }) {
 }
 
 function optionStyle(answer, option) {
-  if (!answer) return 'border-zinc-200 bg-white hover:border-indigo-400 dark:border-zinc-700 dark:bg-zinc-900'
+  if (!answer) return 'border-zinc-200 bg-white hover:border-accent-400 dark:border-zinc-700 dark:bg-zinc-900'
   if (option.id === answer.correct_option_id)
     return 'border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/40'
   if (option.id === answer.chosenOptionId)

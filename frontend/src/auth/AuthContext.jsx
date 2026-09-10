@@ -40,6 +40,20 @@ export function AuthProvider({ children }) {
     setUnauthorizedHandler(logout)
   }, [logout])
 
+  // A cor de destaque do app segue o idioma estudado (ver index.css). Sem
+  // sessão (tela de login) volta ao tema neutro da marca.
+  const learningLanguage = session?.user?.learning_language
+  useEffect(() => {
+    const root = document.documentElement
+    if (learningLanguage) root.dataset.lang = learningLanguage
+    else delete root.dataset.lang
+
+    const themeColors = { de: '#dc2626', en: '#2563eb' }
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', themeColors[learningLanguage] ?? '#4f46e5')
+  }, [learningLanguage])
+
   const applyToken = useCallback(
     (tokenResponse) => {
       persist({ token: tokenResponse.access_token, user: tokenResponse.user })

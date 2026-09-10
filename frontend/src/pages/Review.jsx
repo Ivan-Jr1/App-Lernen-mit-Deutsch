@@ -63,9 +63,9 @@ function Flashcard({ card, flipped, onFlip, onSpeak }) {
         </span>
 
         {/* Verso — idioma estudado */}
-        <span className="backface-hidden rotate-y-180 absolute inset-0 flex flex-col items-center justify-center rounded-3xl border border-indigo-200 bg-indigo-50 p-8 text-center shadow-sm dark:border-indigo-900/60 dark:bg-indigo-950/40">
-          <span className="text-sm text-indigo-700/60 dark:text-indigo-300/60">{card.front_pt}</span>
-          <span className="mt-2 flex items-center gap-2 text-3xl font-bold text-indigo-950 dark:text-indigo-100">
+        <span className="backface-hidden rotate-y-180 absolute inset-0 flex flex-col items-center justify-center rounded-3xl border border-accent-200 bg-accent-50 p-8 text-center shadow-sm dark:border-accent-900/60 dark:bg-accent-950/40">
+          <span className="text-sm text-accent-700/60 dark:text-accent-300/60">{card.front_pt}</span>
+          <span className="mt-2 flex items-center gap-2 text-3xl font-bold text-accent-950 dark:text-accent-100">
             {card.back_target}
             {speechSupported && (
               <span
@@ -76,14 +76,14 @@ function Flashcard({ card, flipped, onFlip, onSpeak }) {
                   onSpeak()
                 }}
                 aria-label={`Ouvir em ${languageName(card.language)}`}
-                className="grid size-8 place-items-center rounded-full bg-indigo-600 text-white hover:bg-indigo-500"
+                className="grid size-8 place-items-center rounded-full bg-accent-600 text-white hover:bg-accent-500"
               >
                 <SpeakerIcon className="size-4" />
               </span>
             )}
           </span>
           {card.phonetic_hint && (
-            <span className="mt-2 text-sm italic text-indigo-700/80 dark:text-indigo-300/80">
+            <span className="mt-2 text-sm italic text-accent-700/80 dark:text-accent-300/80">
               {card.phonetic_hint}
             </span>
           )}
@@ -211,7 +211,7 @@ export default function Review() {
           )}
           <Link
             to="/dashboard"
-            className="font-semibold text-indigo-600 underline underline-offset-4 dark:text-indigo-400"
+            className="font-semibold text-accent-600 underline underline-offset-4 dark:text-accent-400"
           >
             Ver o dashboard →
           </Link>
@@ -256,7 +256,7 @@ export default function Review() {
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
           <div
-            className="h-full rounded-full bg-indigo-500 transition-[width] duration-500"
+            className="h-full rounded-full bg-accent-500 transition-[width] duration-500"
             style={{ width: `${progress}%` }}
           />
         </div>

@@ -76,8 +76,8 @@ function NavItem({ to, label, Icon, variant = 'desktop' }) {
           'transition-colors',
           isActive
             ? isMobile
-              ? 'text-indigo-600 dark:text-indigo-400'
-              : 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300'
+              ? 'text-accent-600 dark:text-accent-400'
+              : 'bg-accent-50 text-accent-700 dark:bg-accent-950/50 dark:text-accent-300'
             : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100',
         ].join(' ')
       }
@@ -93,8 +93,8 @@ export default function Layout() {
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-6xl">
-      {/* faixa de destaque no topo */}
-      <div className="fixed inset-x-0 top-0 z-20 h-1 bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-500" />
+      {/* faixa de destaque no topo — cores da bandeira do idioma ativo */}
+      <div className="brand-stripe fixed inset-x-0 top-0 z-20 h-1" />
 
       {/* Sidebar — desktop */}
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-zinc-200 p-4 pt-5 md:flex dark:border-zinc-800">
