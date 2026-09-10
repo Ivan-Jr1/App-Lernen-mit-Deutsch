@@ -68,14 +68,14 @@ export default function Welcome() {
                       onClick={() => setSelected(language.code)}
                       className={`flex flex-col items-center gap-2 rounded-xl border px-3 py-5 text-sm font-semibold transition-colors ${
                         active
-                          ? 'border-indigo-500 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300'
-                          : 'border-zinc-200 bg-white text-zinc-600 hover:border-indigo-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300'
+                          ? 'border-accent-500 bg-accent-50 text-accent-700 dark:bg-accent-950/50 dark:text-accent-300'
+                          : 'border-zinc-200 bg-white text-zinc-600 hover:border-accent-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300'
                       }`}
                     >
                       {language.name}
                       <span
                         className={`grid size-5 place-items-center rounded-full ${
-                          active ? 'bg-indigo-600 text-white' : 'bg-zinc-100 dark:bg-zinc-800'
+                          active ? 'bg-accent-600 text-white' : 'bg-zinc-100 dark:bg-zinc-800'
                         }`}
                       >
                         {active && <CheckIcon className="size-3.5" />}

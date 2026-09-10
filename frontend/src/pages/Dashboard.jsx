@@ -37,7 +37,7 @@ function HeroCard({ user, leads }) {
         </p>
         <div className="mx-auto mt-1 h-1.5 w-24 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
           <div
-            className="h-full rounded-full bg-indigo-500 transition-[width] duration-500"
+            className="h-full rounded-full bg-accent-500 transition-[width] duration-500"
             style={{ width: `${Math.min(100, (user.reviewed_today / user.daily_goal) * 100)}%` }}
           />
         </div>
@@ -70,7 +70,7 @@ function ComparisonRow({ label, a, b, format }) {
         </span>
       </div>
       <div className="flex h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-        <div className="bg-indigo-500 transition-[width] duration-500" style={{ width: `${aShare}%` }} />
+        <div className="bg-accent-500 transition-[width] duration-500" style={{ width: `${aShare}%` }} />
         <div className="flex-1 bg-emerald-500" />
       </div>
     </div>
@@ -102,7 +102,7 @@ export default function Dashboard() {
 
       <Card className="px-5 py-2">
         <div className="flex justify-between py-2 text-xs font-semibold uppercase tracking-wide">
-          <span className="text-indigo-600 dark:text-indigo-400">{a.display_name}</span>
+          <span className="text-accent-600 dark:text-accent-400">{a.display_name}</span>
           <span className="text-emerald-600 dark:text-emerald-400">{b.display_name}</span>
         </div>
         <div className="divide-y divide-zinc-100 dark:divide-zinc-800">

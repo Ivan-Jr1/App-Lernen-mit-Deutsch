@@ -6,7 +6,7 @@ import { apiHasResponded } from '../lib/api.js'
 
 const BUTTON_VARIANTS = {
   primary:
-    'bg-indigo-600 text-white hover:bg-indigo-500 active:bg-indigo-700 disabled:bg-indigo-600/50',
+    'bg-accent-600 text-white hover:bg-accent-500 active:bg-accent-700 disabled:bg-accent-600/50',
   secondary:
     'bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700',
   ghost:
@@ -17,7 +17,7 @@ export function Button({ variant = 'primary', className = '', ...props }) {
   return (
     <button
       className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold
-        transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500
+        transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500
         disabled:cursor-not-allowed ${BUTTON_VARIANTS[variant]} ${className}`}
       {...props}
     />
@@ -50,7 +50,7 @@ export function Spinner({ label }) {
 
   return (
     <div className="mx-auto flex max-w-xs flex-col items-center gap-3 py-16 text-center text-sm text-zinc-400">
-      <span className="size-6 animate-spin rounded-full border-2 border-zinc-300 border-t-indigo-500 dark:border-zinc-700 dark:border-t-indigo-400" />
+      <span className="size-6 animate-spin rounded-full border-2 border-zinc-300 border-t-accent-500 dark:border-zinc-700 dark:border-t-accent-400" />
       {message}
     </div>
   )
@@ -106,7 +106,7 @@ export function Badge({ tone = 'zinc', children }) {
   const tones = {
     zinc: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300',
     amber: 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300',
-    indigo: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300',
+    accent: 'bg-accent-100 text-accent-700 dark:bg-accent-950/60 dark:text-accent-300',
   }
   return (
     <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${tones[tone]}`}>{children}</span>

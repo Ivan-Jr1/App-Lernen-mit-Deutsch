@@ -38,6 +38,12 @@
         const dark = stored ? stored === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches
         if (dark) document.documentElement.classList.add('dark')
       } catch {}
+      // Idem para a cor de destaque, que segue o idioma estudado.
+      try {
+        const s = JSON.parse(localStorage.getItem('deutsch-app:session') || 'null')
+        const lang = s && s.user && s.user.learning_language
+        if (lang) document.documentElement.dataset.lang = lang
+      } catch {}
     </script>
   </head>
   <body>

@@ -44,8 +44,8 @@ tests, and a React frontend wired to it — not a pile of automation scripts.
   overwhelming; you can always choose to keep going past it.
 - **Two languages** — the app also has an English deck (~35 cards, 3 scenarios). Right
   after login a quick screen asks which language you're studying (also changeable in
-  Settings); the review queue, scenario list and text-to-speech follow it, and each
-  language keeps its own SM-2 schedule.
+  Settings); the review queue, scenario list, text-to-speech and the UI accent colour
+  (German → red, English → blue) follow it, and each language keeps its own SM-2 schedule.
 - **Everyday-situation scenarios** — scripted dialogues (German: Anmeldung, bank, apartment
   viewing, doctor, supermarket, bakery, phone appointment; English: airport check-in, job
   interview, doctor's visit) with 2–3 multiple-choice replies. Picking a less natural
