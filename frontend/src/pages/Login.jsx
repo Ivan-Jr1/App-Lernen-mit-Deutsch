@@ -34,7 +34,7 @@ export default function Login() {
     try {
       if (isClaiming) await claim(picked.username, password)
       else await login(picked.username, password)
-      navigate('/review', { replace: true })
+      navigate('/welcome', { replace: true }) // passo de idioma antes do app
     } catch (err) {
       setError(err.message)
     } finally {

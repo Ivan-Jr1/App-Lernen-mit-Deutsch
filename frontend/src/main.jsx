@@ -15,6 +15,7 @@ const Login = lazy(() => import('./pages/Login.jsx'))
 const Review = lazy(() => import('./pages/Review.jsx'))
 const Scenarios = lazy(() => import('./pages/Scenarios.jsx'))
 const Settings = lazy(() => import('./pages/Settings.jsx'))
+const Welcome = lazy(() => import('./pages/Welcome.jsx'))
 
 // Acorda a API do Render (free tier hiberna após 15 min) já no carregamento,
 // em paralelo com o resto — encurta a espera da primeira tela.
@@ -30,8 +31,18 @@ function LoginRoute() {
   return isAuthenticated ? <Navigate to="/review" replace /> : <Login />
 }
 
+// Passo pós-login fora do Layout (tela cheia). Não é um portão: recarregar já
+// logado não traz de volta — só o fluxo de login/cadastro navega para cá.
+function WelcomeRoute() {
+  const { isAuthenticated, isGuest } = useAuth()
+  if (!isAuthenticated) return <Navigate to="/login" replace />
+  if (isGuest) return <Navigate to="/review" replace />
+  return <Welcome />
+}
+
 const router = createBrowserRouter([
   { path: '/login', element: <LoginRoute /> },
+  { path: '/welcome', element: <WelcomeRoute /> },
   {
     path: '/',
     element: <RequireAuth />,
