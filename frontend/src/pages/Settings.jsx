@@ -17,6 +17,7 @@ import {
   ChartIcon,
   GlobeIcon,
   LockIcon,
+  LogoutIcon,
   SpeakerIcon,
   TrashIcon,
   UserIcon,
@@ -412,14 +413,26 @@ function VoiceCard() {
   )
 }
 
+function LogoutButton() {
+  const { logout } = useAuth()
+  return (
+    <Button variant="ghost" onClick={logout} className="w-full">
+      <LogoutIcon className="size-4" /> Sair da conta
+    </Button>
+  )
+}
+
 export default function Settings() {
   const { isGuest } = useAuth()
 
   if (isGuest) {
     return (
-      <EmptyState icon="👀" title="Modo visitante">
-        Sem conta própria não há o que configurar. Entre como Ivan ou Gabriela.
-      </EmptyState>
+      <div className="space-y-4">
+        <EmptyState icon="👀" title="Modo visitante">
+          Sem conta própria não há o que configurar. Entre como Ivan ou Gabriela.
+        </EmptyState>
+        <LogoutButton />
+      </div>
     )
   }
 
@@ -431,6 +444,7 @@ export default function Settings() {
       <VoiceCard />
       <PasswordCard />
       <ResetScoreCard />
+      <LogoutButton />
     </div>
   )
 }
