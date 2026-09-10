@@ -46,8 +46,9 @@ intervalo, data de vencimento) vive em `review_states`, uma linha por
 
 Cada cartão e cada cenário pertencem a um **idioma** (`cards.language`,
 `scenarios.language`; `de` por padrão). O usuário escolhe o idioma que está
-estudando (`users.learning_language`) e a fila de revisão, a lista de cenários e
-a voz do TTS seguem essa escolha. Pontos e streak do dashboard somam os dois
+estudando (`users.learning_language`) — num passo logo após o login e também em
+Configurações — e a fila de revisão, a lista de cenários e a voz do TTS seguem
+essa escolha. Pontos e streak do dashboard somam os dois
 idiomas — medem o hábito do casal, não a fluência em cada língua.
 
 ### 4.1 `users`
@@ -317,7 +318,7 @@ frontend/
     auth/AuthContext.jsx   # token JWT + sessão, rotas protegidas
     lib/  api.js  theme.js
     components/  Layout.jsx  Logo.jsx  ui.jsx  icons.jsx
-    pages/  Login.jsx  Review.jsx  Scenarios.jsx  Dashboard.jsx  Settings.jsx
+    pages/  Login.jsx  Welcome.jsx  Review.jsx  Scenarios.jsx  Dashboard.jsx  Settings.jsx
   public/  manifest.webmanifest  icon-192.png  icon-512.png
   vercel.json          # rewrite SPA -> index.html
 docs/
