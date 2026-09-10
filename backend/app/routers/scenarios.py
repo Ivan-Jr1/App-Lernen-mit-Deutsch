@@ -34,8 +34,15 @@ def _get_scenario_by_slug(db: DbSession, slug: str) -> Scenario:
 
 
 @router.get("/scenarios", response_model=list[ScenarioSummaryOut])
-def list_scenarios(db: DbSession):
-    return list(db.scalars(select(Scenario).order_by(Scenario.id)))
+def list_scenarios(db: DbSession, current_user: Reader):
+    """Cenários no idioma que o usuário está estudando agora."""
+    return list(
+        db.scalars(
+            select(Scenario)
+            .where(Scenario.language == current_user.learning_language)
+            .order_by(Scenario.id)
+        )
+    )
 
 
 @router.get("/scenarios/{slug}", response_model=ScenarioDetailOut)

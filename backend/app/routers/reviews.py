@@ -42,7 +42,11 @@ def list_due_cards(
         )
     }
 
-    cards = db.scalars(select(Card).where(_visible_to(current_user)).order_by(Card.id))
+    cards = db.scalars(
+        select(Card)
+        .where(_visible_to(current_user), Card.language == current_user.learning_language)
+        .order_by(Card.id)
+    )
 
     due: list[DueCardOut] = []
     for card in cards:
@@ -53,7 +57,8 @@ def list_due_cards(
             DueCardOut(
                 id=card.id,
                 front_pt=card.front_pt,
-                back_de=card.back_de,
+                back_target=card.back_target,
+                language=card.language,
                 phonetic_hint=card.phonetic_hint,
                 category=card.category,
                 owner_id=card.owner_id,

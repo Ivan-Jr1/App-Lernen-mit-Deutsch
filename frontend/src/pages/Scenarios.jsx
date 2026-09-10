@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '../auth/AuthContext.jsx'
 import { api } from '../lib/api.js'
-import { speakGerman, speechSupported } from '../lib/speech.js'
+import { speak, speechSupported } from '../lib/speech.js'
+import { languageName } from '../lib/languages.js'
 import { SpeakerIcon } from '../components/icons.jsx'
 import { Button, Card, EmptyState, ErrorState, Spinner } from '../components/ui.jsx'
 
@@ -113,15 +114,15 @@ function Player({ scenario, onExit }) {
           <p className="text-xs text-zinc-400">Atendente</p>
           {speechSupported && (
             <button
-              onClick={() => speakGerman(step.speaker_text_de)}
-              aria-label="Ouvir em alemão"
+              onClick={() => speak(step.speaker_text_target, scenario.language)}
+              aria-label={`Ouvir em ${languageName(scenario.language)}`}
               className="grid size-7 place-items-center rounded-full bg-white/10 hover:bg-white/20"
             >
               <SpeakerIcon className="size-4" />
             </button>
           )}
         </div>
-        <p className="mt-1 font-medium">{step.speaker_text_de}</p>
+        <p className="mt-1 font-medium">{step.speaker_text_target}</p>
         {step.speaker_text_pt && (
           <p className="mt-1 text-sm text-zinc-400">{step.speaker_text_pt}</p>
         )}
@@ -135,7 +136,7 @@ function Player({ scenario, onExit }) {
             onClick={() => choose(option.id)}
             className={`w-full rounded-xl border px-4 py-3 text-left text-sm transition-colors disabled:cursor-default ${optionStyle(answer, option)}`}
           >
-            {option.option_text_de}
+            {option.option_text_target}
           </button>
         ))}
       </div>

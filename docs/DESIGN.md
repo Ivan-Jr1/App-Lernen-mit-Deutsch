@@ -44,6 +44,12 @@ O cartão guarda só o conteúdo; o estado de repetição espaçada (facilidade,
 intervalo, data de vencimento) vive em `review_states`, uma linha por
 `(usuário, cartão)`.
 
+Cada cartão e cada cenário pertencem a um **idioma** (`cards.language`,
+`scenarios.language`; `de` por padrão). O usuário escolhe o idioma que está
+estudando (`users.learning_language`) e a fila de revisão, a lista de cenários e
+a voz do TTS seguem essa escolha. Pontos e streak do dashboard somam os dois
+idiomas — medem o hábito do casal, não a fluência em cada língua.
+
 ### 4.1 `users`
 Dois registros fixos criados por seed.
 
@@ -56,6 +62,7 @@ Dois registros fixos criados por seed.
 | is_guest      | bool        | `true` = conta de visitante (somente leitura), fora do dashboard do casal |
 | avatar_url    | text, nullable | Foto de perfil como data URI (o cliente redimensiona para ~256px antes de enviar) |
 | daily_goal    | int, default 20 | Meta de cartões por dia (1–200). A fila de revisão é limitada a esse número por padrão. |
+| learning_language | str, default `de` | Idioma que o usuário está estudando agora (`de`, `en`). A fila de revisão e a lista de cenários seguem este valor. |
 | created_at    | datetime    | |
 
 ### 4.2 `cards`
@@ -65,7 +72,8 @@ Conteúdo do flashcard. Não guarda estado de estudo.
 |----------------|-------------------|-------|
 | id             | int PK            | |
 | front_pt       | str               | Frase em português (frente) |
-| back_de        | str               | Tradução em alemão (verso) |
+| back_target    | str               | Tradução no idioma estudado (verso) |
+| language       | str, default `de` | Idioma do verso (`de`, `en`) — indexado |
 | phonetic_hint  | str, nullable     | Aproximação de pronúncia em português — ex.: "Wie geht's" → "Ví guêts" |
 | category       | str, nullable     | Agrupamento livre — ex.: `saudações`, `banco`, `moradia` |
 | owner_id       | int FK users, nullable | **NULL = cartão compartilhado** (aparece para os dois). Preenchido = cartão privado daquele usuário. |
@@ -115,6 +123,7 @@ Um cenário de burocracia.
 | title       | str         | |
 | description | str         | Contexto exibido antes de começar |
 | category    | str         | ex.: `registro`, `banco`, `moradia` |
+| language    | str, default `de` | Idioma do diálogo (`de`, `en`) — indexado |
 | created_at  | datetime    | |
 
 ### 4.6 `scenario_steps`
@@ -125,7 +134,7 @@ Cada fala do "atendente" dentro de um cenário, em ordem.
 | id              | int PK | |
 | scenario_id     | int FK scenarios | |
 | step_order      | int    | 1, 2, 3… |
-| speaker_text_de | str    | Fala do atendente em alemão |
+| speaker_text_target | str | Fala do atendente no idioma estudado |
 | speaker_text_pt | str, nullable | Tradução de apoio |
 
 Restrição: `UNIQUE(scenario_id, step_order)`.
@@ -137,7 +146,7 @@ As 2–3 respostas de múltipla escolha de um passo.
 |----------------|--------|-------|
 | id             | int PK | |
 | step_id        | int FK scenario_steps | |
-| option_text_de | str    | Texto da opção em alemão |
+| option_text_target | str | Texto da opção no idioma estudado |
 | is_correct     | bool   | Exatamente uma `true` por passo |
 | explanation    | str    | Por que a resposta correta é mais natural — mostrado ao errar |
 | option_order   | int    | Ordem de exibição |
@@ -249,19 +258,21 @@ POST /api/auth/claim                       body: {username, password} — define
 POST /api/auth/login                       body: {username, password} — devolve token
 POST /api/auth/guest                       devolve token somente leitura (visitante)
 GET  /api/auth/me                          confirma a sessão atual
-PATCH /api/auth/me                         body: {display_name?, avatar_url?, daily_goal?} — atualiza o perfil  [escrita]
+PATCH /api/auth/me                         body: {display_name?, avatar_url?, daily_goal?, learning_language?} — atualiza o perfil  [escrita]
 POST /api/auth/change-password             body: {current_password, new_password}                  [escrita]
 
-GET  /api/cards?category=                  lista cartões visíveis ao usuário
+GET  /api/languages                        idiomas de estudo disponíveis: [{code, name}]
+
+GET  /api/cards?category=                  lista cartões do idioma ativo, visíveis ao usuário
 POST /api/cards                            cria cartão (compartilhado ou privado)     [escrita]
 GET  /api/cards/{id}
 PUT  /api/cards/{id}                                                                  [escrita]
 DELETE /api/cards/{id}                                                                [escrita]
 
-GET  /api/reviews/due?include_all=        fila do dia (limitada à meta) + {daily_goal, reviewed_today, due_total, cards}
+GET  /api/reviews/due?include_all=        fila do dia no idioma ativo (limitada à meta) + {daily_goal, reviewed_today, due_total, cards}
 POST /api/reviews                          body: {card_id, grade} — aplica SM-2, grava log  [escrita]
 
-GET  /api/scenarios                        lista cenários
+GET  /api/scenarios                        lista cenários do idioma ativo
 GET  /api/scenarios/{slug}                 cenário com passos e opções
 POST /api/scenarios/{slug}/attempts        inicia uma jogada                          [escrita]
 POST /api/attempts/{id}/answers            body: {step_id, option_id} — acerto + explicação  [escrita]
@@ -290,14 +301,15 @@ backend/
     srs.py             # algoritmo SM-2 isolado e testável
     scoring.py         # regras de pontuação
     stats.py           # cálculo de streak e agregados do dashboard
+    languages.py       # idiomas de estudo suportados (código -> nome)
     routers/
-      auth.py  cards.py  reviews.py  scenarios.py  dashboard.py
+      auth.py  languages.py  cards.py  reviews.py  scenarios.py  dashboard.py
     data/
-      seed_data.py     # conteúdo: contas, ~75 cartões (15 temas), 7 cenários
+      seed_data.py     # conteúdo: contas, ~110 cartões (alemão + inglês), 10 cenários
     seed.py            # insere seed_data.py no banco (idempotente; --reset)
   tests/
     conftest.py        # banco :memory: isolado + TestClient + helpers de auth
-    test_srs.py  test_auth.py  test_reviews.py  test_scenarios.py  test_dashboard.py
+    test_srs.py  test_auth.py  test_reviews.py  test_scenarios.py  test_dashboard.py  test_languages.py
   requirements.txt
   .python-version      # 3.12.8 (deploy)
 frontend/

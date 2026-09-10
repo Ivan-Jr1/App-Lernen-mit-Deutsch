@@ -32,21 +32,26 @@ tests, and a React frontend wired to it — not a pile of automation scripts.
 ## Features
 
 - **Spaced-repetition flashcards** — the SM-2 algorithm (the one Anki is based on),
-  over a ~75-card starter deck across 15 themes (numbers, time, family, food, transport,
-  health, small talk…). Each card has a Portuguese phrase, its German translation, and a
-  homemade phonetic hint (`"Wie geht's"` → `"Ví guêts"`). Flipping a card speaks the
-  German answer aloud (browser `speechSynthesis`, adjustable speed). Cards can be shared or
+  over a ~75-card German starter deck across 15 themes (numbers, time, family, food,
+  transport, health, small talk…). Each card has a Portuguese phrase, its translation, and
+  a homemade phonetic hint (`"Wie geht's"` → `"Ví guêts"`). Flipping a card speaks the
+  answer aloud (browser `speechSynthesis`, adjustable speed). Cards can be shared or
   private, and the review schedule is **per user** — a shared card advances independently
   for each person. A per-user **daily goal** caps the review queue so a big pile isn't
   overwhelming; you can always choose to keep going past it.
-- **Everyday-situation scenarios** — 7 scripted dialogues (Anmeldung, bank, apartment
-  viewing, doctor, supermarket, bakery, booking an appointment by phone) with 2–3
-  multiple-choice replies. Picking a less natural answer shows *why* the better one fits.
+- **Two languages** — the app also has an English deck (~35 cards, 3 scenarios). A switch
+  in Settings picks the language you're studying; the review queue, scenario list and
+  text-to-speech follow it, and each language keeps its own SM-2 schedule.
+- **Everyday-situation scenarios** — scripted dialogues (German: Anmeldung, bank, apartment
+  viewing, doctor, supermarket, bakery, phone appointment; English: airport check-in, job
+  interview, doctor's visit) with 2–3 multiple-choice replies. Picking a less natural
+  answer shows *why* the better one fits.
 - **Couple mode** — points, current/longest streak, cards reviewed today vs. the daily
   goal, total cards reviewed and scenarios completed for the two users side by side. All
   derived by SQL aggregation, no scoreboard table.
 - **Accounts & profile** — JWT auth, a first-use password claim, a read-only guest role,
-  plus a settings screen for the password, profile photo, daily goal and voice speed.
+  plus a settings screen for the password, profile photo, daily goal, study language and
+  voice speed.
 
 ## Tech stack
 
@@ -72,7 +77,7 @@ backend/
     srs.py         SM-2 algorithm — pure, no framework
     scoring.py     points rules
     stats.py       streak + dashboard aggregation
-    routers/       auth (login + profile) · cards · reviews · scenarios · dashboard
+    routers/       auth (login + profile) · languages · cards · reviews · scenarios · dashboard
     seed.py        loads app/data/seed_data.py
   tests/           pytest — SM-2, auth, and every endpoint
 frontend/
@@ -98,7 +103,7 @@ Requires Python 3.11+ and Node 18+.
 cd backend
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-python -m app.seed                 # 3 accounts, ~75 cards, 7 scenarios, sample activity
+python -m app.seed                 # 3 accounts, ~110 cards (DE+EN), 10 scenarios, sample activity
 uvicorn app.main:app --reload      # http://localhost:8000/docs
 ```
 
@@ -131,10 +136,11 @@ read-only access.
 | `GET` | `/api/auth/accounts` | the fixed accounts and whether each has a password yet |
 | `POST` | `/api/auth/claim` · `/api/auth/login` | set the password on first use / log in — both return a token |
 | `POST` | `/api/auth/guest` | read-only token for recruiters |
-| `PATCH` | `/api/auth/me` · `POST /api/auth/change-password` | update name/photo/daily goal · rotate the password |
-| `GET` | `/api/reviews/due` | the day's queue (capped to the daily goal; `?include_all=true` for everything) plus goal progress |
+| `PATCH` | `/api/auth/me` · `POST /api/auth/change-password` | update name/photo/daily goal/study language · rotate the password |
+| `GET` | `/api/languages` | study languages available (`de`, `en`) |
+| `GET` | `/api/reviews/due` | the day's queue for the active language (capped to the daily goal; `?include_all=true` for everything) plus goal progress |
 | `POST` | `/api/reviews` | submit a grade (0–5); runs SM-2, logs it, returns the next interval |
-| `GET` | `/api/scenarios` · `/api/scenarios/{slug}` | list / detail with steps and options |
+| `GET` | `/api/scenarios` · `/api/scenarios/{slug}` | list (active language) / detail with steps and options |
 | `POST` | `/api/scenarios/{slug}/attempts` · `/api/attempts/{id}/answers` | start a playthrough / answer a step |
 | `GET` | `/api/dashboard` | both users' progress side by side |
 | `GET` | `/api/cards` + CRUD | manage flashcards |

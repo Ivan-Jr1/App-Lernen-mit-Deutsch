@@ -3,7 +3,9 @@ modelos ORM."""
 
 from datetime import date, datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from app.languages import SUPPORTED_LANGUAGES
 
 # --------------------------------------------------------------------------- #
 # Autenticação                                                                 #
@@ -29,6 +31,7 @@ class AuthUser(BaseModel):
     readonly: bool
     avatar_url: str | None = None
     daily_goal: int = 20
+    learning_language: str = "de"
 
 
 class TokenOut(BaseModel):
@@ -43,11 +46,29 @@ class ProfileUpdate(BaseModel):
     # Limite generoso: o cliente redimensiona para ~256px antes de enviar.
     avatar_url: str | None = Field(default=None, max_length=350_000)
     daily_goal: int | None = Field(default=None, ge=1, le=200)
+    learning_language: str | None = None
+
+    @field_validator("learning_language")
+    @classmethod
+    def _known_language(cls, value: str | None) -> str | None:
+        if value is not None and value not in SUPPORTED_LANGUAGES:
+            raise ValueError(f"Idioma não suportado: {value}")
+        return value
 
 
 class PasswordChange(BaseModel):
     current_password: str = Field(min_length=1, max_length=128)
     new_password: str = Field(min_length=6, max_length=128)
+
+
+# --------------------------------------------------------------------------- #
+# Idiomas                                                                      #
+# --------------------------------------------------------------------------- #
+
+
+class LanguageOut(BaseModel):
+    code: str  # ISO 639-1, ex.: "de"
+    name: str  # nome de exibição, ex.: "Alemão"
 
 # --------------------------------------------------------------------------- #
 # Cartões                                                                      #
@@ -56,7 +77,7 @@ class PasswordChange(BaseModel):
 
 class CardBase(BaseModel):
     front_pt: str = Field(min_length=1, max_length=300)
-    back_de: str = Field(min_length=1, max_length=300)
+    back_target: str = Field(min_length=1, max_length=300)
     phonetic_hint: str | None = Field(default=None, max_length=300)
     category: str | None = Field(default=None, max_length=50)
 
@@ -64,11 +85,13 @@ class CardBase(BaseModel):
 class CardCreate(CardBase):
     # username do dono para um cartão privado; ausente = cartão compartilhado
     owner_username: str | None = None
+    # idioma do cartão; ausente = o idioma que o criador está estudando
+    language: str | None = None
 
 
 class CardUpdate(BaseModel):
     front_pt: str | None = Field(default=None, min_length=1, max_length=300)
-    back_de: str | None = Field(default=None, min_length=1, max_length=300)
+    back_target: str | None = Field(default=None, min_length=1, max_length=300)
     phonetic_hint: str | None = Field(default=None, max_length=300)
     category: str | None = Field(default=None, max_length=50)
 
@@ -78,6 +101,7 @@ class CardOut(CardBase):
 
     id: int
     owner_id: int | None
+    language: str
     created_at: datetime
 
 
@@ -130,7 +154,7 @@ class ScenarioOptionOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    option_text_de: str
+    option_text_target: str
     option_order: int
     # is_correct e explanation são omitidos de propósito: o cliente só descobre
     # ao responder (POST .../answers).
@@ -141,7 +165,7 @@ class ScenarioStepOut(BaseModel):
 
     id: int
     step_order: int
-    speaker_text_de: str
+    speaker_text_target: str
     speaker_text_pt: str | None
     options: list[ScenarioOptionOut]
 
@@ -154,6 +178,7 @@ class ScenarioSummaryOut(BaseModel):
     title: str
     description: str
     category: str
+    language: str
 
 
 class ScenarioDetailOut(ScenarioSummaryOut):

@@ -6,7 +6,7 @@ from sqlalchemy import text
 
 from app.config import settings
 from app.database import Base, engine
-from app.routers import auth, cards, dashboard, progress, reviews, scenarios
+from app.routers import auth, cards, dashboard, languages, progress, reviews, scenarios
 
 # Para um projeto deste tamanho, criar as tabelas na inicialização basta.
 # Migrations (Alembic) entram quando o schema começar a evoluir em produção.
@@ -25,6 +25,38 @@ def _apply_pending_migrations() -> None:
         connection.execute(
             text("ALTER TABLE users ADD COLUMN IF NOT EXISTS daily_goal INTEGER NOT NULL DEFAULT 20")
         )
+        # Segunda língua: idioma por cartão/cenário e o idioma ativo de cada conta.
+        connection.execute(
+            text(
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS "
+                "learning_language VARCHAR(5) NOT NULL DEFAULT 'de'"
+            )
+        )
+        connection.execute(
+            text("ALTER TABLE cards ADD COLUMN IF NOT EXISTS language VARCHAR(5) NOT NULL DEFAULT 'de'")
+        )
+        connection.execute(
+            text(
+                "ALTER TABLE scenarios ADD COLUMN IF NOT EXISTS "
+                "language VARCHAR(5) NOT NULL DEFAULT 'de'"
+            )
+        )
+        # Renomeia as colunas de conteúdo `_de` para nomes neutros de idioma.
+        # Postgres não aceita "RENAME COLUMN IF EXISTS", então cada rename é
+        # protegido por uma checagem no information_schema (idempotente).
+        for table, old_column, new_column in (
+            ("cards", "back_de", "back_target"),
+            ("scenario_steps", "speaker_text_de", "speaker_text_target"),
+            ("scenario_options", "option_text_de", "option_text_target"),
+        ):
+            connection.execute(
+                text(
+                    f"DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.columns "
+                    f"WHERE table_name = '{table}' AND column_name = '{old_column}') "
+                    f"THEN ALTER TABLE {table} RENAME COLUMN {old_column} TO {new_column}; "
+                    f"END IF; END $$;"
+                )
+            )
 
 
 _apply_pending_migrations()
@@ -52,6 +84,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(languages.router)
 app.include_router(cards.router)
 app.include_router(reviews.router)
 app.include_router(scenarios.router)

@@ -6,11 +6,12 @@ import { api } from '../lib/api.js'
 import {
   getSpeechRate,
   setSpeechRate,
-  speakGerman,
+  speak,
   SPEECH_SPEED_PRESETS,
   speechSupported,
   stopSpeaking,
 } from '../lib/speech.js'
+import { languageName } from '../lib/languages.js'
 import { SpeakerIcon, SpeakerOffIcon } from '../components/icons.jsx'
 import { Button, EmptyState, ErrorState, Spinner } from '../components/ui.jsx'
 
@@ -61,11 +62,11 @@ function Flashcard({ card, flipped, onFlip, onSpeak }) {
           <span className="mt-6 text-xs text-zinc-400">toque para ver a resposta</span>
         </span>
 
-        {/* Verso — alemão */}
+        {/* Verso — idioma estudado */}
         <span className="backface-hidden rotate-y-180 absolute inset-0 flex flex-col items-center justify-center rounded-3xl border border-indigo-200 bg-indigo-50 p-8 text-center shadow-sm dark:border-indigo-900/60 dark:bg-indigo-950/40">
           <span className="text-sm text-indigo-700/60 dark:text-indigo-300/60">{card.front_pt}</span>
           <span className="mt-2 flex items-center gap-2 text-3xl font-bold text-indigo-950 dark:text-indigo-100">
-            {card.back_de}
+            {card.back_target}
             {speechSupported && (
               <span
                 role="button"
@@ -74,7 +75,7 @@ function Flashcard({ card, flipped, onFlip, onSpeak }) {
                   e.stopPropagation()
                   onSpeak()
                 }}
-                aria-label="Ouvir em alemão"
+                aria-label={`Ouvir em ${languageName(card.language)}`}
                 className="grid size-8 place-items-center rounded-full bg-indigo-600 text-white hover:bg-indigo-500"
               >
                 <SpeakerIcon className="size-4" />
@@ -155,11 +156,11 @@ export default function Review() {
     })
   }
 
-  // Vira o cartão; ao revelar a resposta, fala o alemão (a não ser que esteja mudo).
+  // Vira o cartão; ao revelar a resposta, fala o idioma estudado (salvo se mudo).
   function flip() {
     setFlipped((wasFlipped) => {
       const nowFlipped = !wasFlipped
-      if (nowFlipped && !muted) speakGerman(queue[0].back_de)
+      if (nowFlipped && !muted) speak(queue[0].back_target, queue[0].language)
       else stopSpeaking()
       return nowFlipped
     })
@@ -271,7 +272,7 @@ export default function Review() {
         card={card}
         flipped={flipped}
         onFlip={flip}
-        onSpeak={() => speakGerman(card.back_de)}
+        onSpeak={() => speak(card.back_target, card.language)}
       />
 
       <div className="mt-6">

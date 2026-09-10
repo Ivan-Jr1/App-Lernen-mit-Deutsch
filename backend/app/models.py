@@ -46,6 +46,9 @@ class User(Base):
     # Quantos cartões o usuário quer revisar por dia. A fila de revisão é limitada
     # a esse número por padrão, para não assustar com pilhas grandes.
     daily_goal: Mapped[int] = mapped_column(Integer, default=20)
+    # Idioma que o usuário está estudando agora (código ISO 639-1, ver
+    # app/languages.py). A fila de revisão e a lista de cenários seguem este valor.
+    learning_language: Mapped[str] = mapped_column(String(5), default="de")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     review_states: Mapped[list["ReviewState"]] = relationship(back_populates="user")
@@ -60,7 +63,9 @@ class Card(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     front_pt: Mapped[str] = mapped_column(String(300))  # frente: frase em português
-    back_de: Mapped[str] = mapped_column(String(300))  # verso: tradução em alemão
+    back_target: Mapped[str] = mapped_column(String(300))  # verso: tradução no idioma estudado
+    # idioma do verso (código ISO 639-1, ver app/languages.py)
+    language: Mapped[str] = mapped_column(String(5), default="de", index=True)
     # aproximação de pronúncia em português, ex.: "Wie geht's" -> "Ví guêts"
     phonetic_hint: Mapped[str | None] = mapped_column(String(300), nullable=True)
     category: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True)
@@ -127,6 +132,8 @@ class Scenario(Base):
     title: Mapped[str] = mapped_column(String(120))
     description: Mapped[str] = mapped_column(String(500))  # contexto mostrado antes de começar
     category: Mapped[str] = mapped_column(String(50))
+    # idioma do diálogo (código ISO 639-1, ver app/languages.py)
+    language: Mapped[str] = mapped_column(String(5), default="de", index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     steps: Mapped[list["ScenarioStep"]] = relationship(
@@ -145,7 +152,7 @@ class ScenarioStep(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     scenario_id: Mapped[int] = mapped_column(ForeignKey("scenarios.id"), index=True)
     step_order: Mapped[int] = mapped_column(Integer)  # 1, 2, 3...
-    speaker_text_de: Mapped[str] = mapped_column(String(500))  # fala do atendente em alemão
+    speaker_text_target: Mapped[str] = mapped_column(String(500))  # fala do atendente no idioma estudado
     speaker_text_pt: Mapped[str | None] = mapped_column(String(500), nullable=True)  # tradução de apoio
 
     scenario: Mapped["Scenario"] = relationship(back_populates="steps")
@@ -163,7 +170,7 @@ class ScenarioOption(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     step_id: Mapped[int] = mapped_column(ForeignKey("scenario_steps.id"), index=True)
-    option_text_de: Mapped[str] = mapped_column(String(400))
+    option_text_target: Mapped[str] = mapped_column(String(400))
     is_correct: Mapped[bool] = mapped_column(Boolean, default=False)  # exatamente uma por passo
     # por que a resposta correta é mais natural — mostrado ao errar
     explanation: Mapped[str] = mapped_column(String(600))
