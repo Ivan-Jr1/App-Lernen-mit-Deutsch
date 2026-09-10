@@ -116,6 +116,9 @@ npm run dev                        # http://localhost:5173  (proxies /api to :80
 cd backend && pytest -q
 ```
 
+Every push and pull request also runs these tests plus the frontend lint and
+build in GitHub Actions ([`ci.yml`](.github/workflows/ci.yml)).
+
 ## API overview
 
 Interactive docs at `/docs`. Auth is a JWT bearer token on every route except
@@ -176,5 +179,4 @@ so it's a no-op once the data exists.
 ## Roadmap
 
 - Alembic migrations (schema currently created with `create_all` + a small startup ALTER)
-- GitHub Actions running `pytest` + `npm run build` on every push
 - Audio for pronunciation hints
