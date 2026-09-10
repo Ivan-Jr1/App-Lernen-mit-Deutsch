@@ -5,15 +5,17 @@ import { api } from '../lib/api.js'
 import {
   getSpeechRate,
   setSpeechRate,
-  speakGerman,
+  speak,
   SPEECH_SPEED_PRESETS,
   speechSupported,
   stopSpeaking,
 } from '../lib/speech.js'
+import { languageName } from '../lib/languages.js'
 import {
   CameraIcon,
   CheckIcon,
   ChartIcon,
+  GlobeIcon,
   LockIcon,
   SpeakerIcon,
   TrashIcon,
@@ -294,17 +296,78 @@ function ResetScoreCard() {
 }
 
 // Exemplo curto para o usuário ouvir a diferença ao trocar a velocidade.
-const VOICE_SAMPLE = 'Guten Tag! Ich möchte mich anmelden.'
+const VOICE_SAMPLES = {
+  de: 'Guten Tag! Ich möchte mich anmelden.',
+  en: 'Hello! I would like to check in, please.',
+}
+
+function LanguageCard() {
+  const { user, updateUser } = useAuth()
+  const [languages, setLanguages] = useState(null)
+  const [saving, setSaving] = useState(null) // código sendo salvo
+  const [feedback, setFeedback] = useState(null)
+
+  useEffect(() => {
+    api.listLanguages().then(setLanguages).catch(() => setLanguages([]))
+  }, [])
+
+  async function choose(code) {
+    if (code === user.learning_language) return
+    setSaving(code)
+    setFeedback(null)
+    try {
+      const updated = await api.updateProfile({ learning_language: code })
+      updateUser(updated)
+      setFeedback({ type: 'ok', message: `Agora estudando ${languageName(code)}.` })
+    } catch (err) {
+      setFeedback({ type: 'error', message: err.message })
+    } finally {
+      setSaving(null)
+    }
+  }
+
+  return (
+    <Card className="p-5">
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-zinc-500 dark:text-zinc-400">
+        <GlobeIcon className="size-4" /> Idioma de estudo
+      </h2>
+      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+        Define os flashcards e cenários que aparecem, e a voz usada para falá-los.
+        Seu progresso e a agenda de revisão de cada idioma são guardados separadamente.
+      </p>
+
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {(languages ?? []).map((language) => (
+          <button
+            key={language.code}
+            onClick={() => choose(language.code)}
+            disabled={saving !== null}
+            className={`rounded-xl border px-2 py-3 text-sm font-semibold transition-colors disabled:opacity-50 ${
+              language.code === user.learning_language
+                ? 'border-indigo-500 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300'
+                : 'border-zinc-200 bg-white text-zinc-600 hover:border-indigo-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300'
+            }`}
+          >
+            {saving === language.code ? 'Trocando…' : language.name}
+          </button>
+        ))}
+      </div>
+      <Feedback state={feedback} />
+    </Card>
+  )
+}
 
 function VoiceCard() {
+  const { user } = useAuth()
   const [rate, setRate] = useState(getSpeechRate)
+  const sample = VOICE_SAMPLES[user.learning_language] ?? VOICE_SAMPLES.de
 
   useEffect(() => stopSpeaking, []) // silencia ao sair da tela
 
   function choose(value) {
     setSpeechRate(value)
     setRate(value)
-    speakGerman(VOICE_SAMPLE) // toca um exemplo na nova velocidade
+    speak(sample, user.learning_language) // toca um exemplo na nova velocidade
   }
 
   return (
@@ -313,7 +376,7 @@ function VoiceCard() {
         <SpeakerIcon className="size-4" /> Voz
       </h2>
       <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
-        Velocidade da fala em alemão nos flashcards e cenários.
+        Velocidade da fala em {languageName(user.learning_language)} nos flashcards e cenários.
       </p>
 
       {speechSupported ? (
@@ -334,7 +397,7 @@ function VoiceCard() {
             ))}
           </div>
           <button
-            onClick={() => speakGerman(VOICE_SAMPLE)}
+            onClick={() => speak(sample, user.learning_language)}
             className="mt-3 text-sm font-medium text-indigo-600 underline underline-offset-4 hover:opacity-80 dark:text-indigo-400"
           >
             Ouvir exemplo de novo
@@ -364,6 +427,7 @@ export default function Settings() {
     <div className="space-y-4">
       <h1 className="text-xl font-bold tracking-tight">Configurações</h1>
       <ProfileCard />
+      <LanguageCard />
       <VoiceCard />
       <PasswordCard />
       <ResetScoreCard />

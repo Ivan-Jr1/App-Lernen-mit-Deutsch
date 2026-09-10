@@ -1,21 +1,30 @@
-// Fala em alemão via Web Speech API do navegador — sem backend, sem custo.
-// A qualidade da voz depende do sistema, então escolhemos a melhor voz alemã
-// disponível e preparamos o texto para soar mais natural e menos apressado.
+// Fala o idioma estudado via Web Speech API do navegador — sem backend, sem custo.
+// A qualidade da voz depende do sistema, então para cada idioma escolhemos a
+// melhor voz disponível e preparamos o texto para soar mais natural.
 
 export const speechSupported =
   typeof window !== 'undefined' && 'speechSynthesis' in window
 
-// Vozes alemãs boas conhecidas, da melhor para a pior. Os nomes variam entre
+// Locale BCP-47 usado na fala, por código de idioma.
+const LOCALES = { de: 'de-DE', en: 'en-US' }
+
+// Vozes boas conhecidas por idioma, da melhor para a pior. Os nomes variam entre
 // navegadores/SOs, então isto serve para pontuar o que o sistema oferecer.
-const PREFERRED_VOICES = [
-  'Google Deutsch',
-  'Microsoft Katja',
-  'Microsoft Hedda',
-  'Anna', // macOS / iOS
-  'Petra',
-  'Helena',
-  'Markus',
-]
+const PREFERRED_VOICES = {
+  de: ['Google Deutsch', 'Microsoft Katja', 'Microsoft Hedda', 'Anna', 'Petra', 'Helena', 'Markus'],
+  en: [
+    'Google US English',
+    'Google UK English Female',
+    'Microsoft Aria',
+    'Microsoft Jenny',
+    'Samantha', // macOS / iOS
+    'Daniel',
+  ],
+}
+
+function localeFor(lang) {
+  return LOCALES[lang] ?? LOCALES.de
+}
 
 // Velocidade da fala. Ajustável pelo usuário (Configurações) e guardada no
 // localStorage — o padrão fica um pouco abaixo do normal por ser texto de estudo.
@@ -57,35 +66,36 @@ export function setSpeechRate(value) {
   }
 }
 
-let cachedVoice = null
+// Voz resolvida por idioma (a busca é cara, então guardamos o resultado).
+const cachedVoice = {}
 
-function scoreVoice(voice) {
-  const preferredIndex = PREFERRED_VOICES.findIndex((name) => voice.name?.includes(name))
-  let score = preferredIndex === -1 ? 0 : (PREFERRED_VOICES.length - preferredIndex) * 10
+function scoreVoice(voice, lang) {
+  const preferred = PREFERRED_VOICES[lang] ?? []
+  const preferredIndex = preferred.findIndex((name) => voice.name?.includes(name))
+  let score = preferredIndex === -1 ? 0 : (preferred.length - preferredIndex) * 10
   // No desktop, as vozes remotas (Google) costumam soar bem melhor que as locais.
   if (!voice.localService) score += 3
-  if (voice.lang === 'de-DE') score += 2
-  else if (voice.lang?.toLowerCase().startsWith('de')) score += 1
+  const locale = localeFor(lang)
+  if (voice.lang === locale) score += 2
+  else if (voice.lang?.toLowerCase().startsWith(lang)) score += 1
   return score
 }
 
-function resolveGermanVoice() {
-  if (cachedVoice) return cachedVoice
-  const german = window.speechSynthesis
+function resolveVoice(lang) {
+  if (cachedVoice[lang]) return cachedVoice[lang]
+  const matches = window.speechSynthesis
     .getVoices()
-    .filter((voice) => voice.lang?.toLowerCase().startsWith('de'))
-  if (german.length === 0) return null
-  cachedVoice = german.sort((a, b) => scoreVoice(b) - scoreVoice(a))[0]
-  return cachedVoice
+    .filter((voice) => voice.lang?.toLowerCase().startsWith(lang))
+  if (matches.length === 0) return null
+  cachedVoice[lang] = matches.sort((a, b) => scoreVoice(b, lang) - scoreVoice(a, lang))[0]
+  return cachedVoice[lang]
 }
 
 if (speechSupported) {
   // A lista de vozes chega de forma assíncrona em alguns navegadores.
   window.speechSynthesis.addEventListener('voiceschanged', () => {
-    cachedVoice = null
-    resolveGermanVoice()
+    for (const lang of Object.keys(cachedVoice)) delete cachedVoice[lang]
   })
-  resolveGermanVoice()
 }
 
 // Resolve quando o navegador já tem a lista de vozes (ou após um tempo limite).
@@ -143,13 +153,13 @@ function startKeepAlive() {
   }, 8000)
 }
 
-function speakNow(text) {
-  const voice = resolveGermanVoice()
+function speakNow(text, lang) {
+  const voice = resolveVoice(lang)
   const sentences = splitSentences(normalizeForSpeech(text))
 
   sentences.forEach((sentence, index) => {
     const utterance = new SpeechSynthesisUtterance(sentence)
-    utterance.lang = 'de-DE'
+    utterance.lang = localeFor(lang)
     utterance.rate = speechRate
     utterance.pitch = 1
     utterance.volume = 1
@@ -164,7 +174,8 @@ function speakNow(text) {
   startKeepAlive()
 }
 
-export function speakGerman(text) {
+// Fala `text` no idioma `lang` (código ISO 639-1: "de", "en").
+export function speak(text, lang = 'de') {
   if (!speechSupported || !text) return
   const synth = window.speechSynthesis
   // Só cancela se algo está tocando — cancel()+speak() imediato tem bug no Chrome
@@ -172,8 +183,8 @@ export function speakGerman(text) {
   if (synth.speaking || synth.pending) synth.cancel()
   stopKeepAlive()
 
-  if (synth.getVoices().length > 0) speakNow(text)
-  else voicesReady().then(() => speakNow(text))
+  if (synth.getVoices().length > 0) speakNow(text, lang)
+  else voicesReady().then(() => speakNow(text, lang))
 }
 
 export function stopSpeaking() {

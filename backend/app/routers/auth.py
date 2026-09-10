@@ -29,6 +29,7 @@ def _as_auth_user(user: User, *, readonly: bool) -> AuthUser:
         readonly=readonly,
         avatar_url=user.avatar_url,
         daily_goal=user.daily_goal,
+        learning_language=user.learning_language,
     )
 
 
@@ -102,6 +103,8 @@ def update_profile(payload: ProfileUpdate, current_user: Writer, db: DbSession):
         current_user.avatar_url = fields["avatar_url"]
     if fields.get("daily_goal") is not None:
         current_user.daily_goal = fields["daily_goal"]
+    if fields.get("learning_language") is not None:
+        current_user.learning_language = fields["learning_language"]
     db.commit()
     db.refresh(current_user)
     return _as_auth_user(current_user, readonly=False)

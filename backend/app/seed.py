@@ -52,8 +52,13 @@ def _seed_users(db) -> dict[str, User]:
 
 def _seed_cards(db, users: dict[str, User]) -> None:
     for row in CARDS:
+        language = row.get("language", "de")  # linhas sem a chave são do deck alemão
         exists = db.scalar(
-            select(Card).where(Card.front_pt == row["front_pt"], Card.back_de == row["back_de"])
+            select(Card).where(
+                Card.front_pt == row["front_pt"],
+                Card.back_target == row["back_target"],
+                Card.language == language,
+            )
         )
         if exists:
             continue
@@ -61,7 +66,8 @@ def _seed_cards(db, users: dict[str, User]) -> None:
         db.add(
             Card(
                 front_pt=row["front_pt"],
-                back_de=row["back_de"],
+                back_target=row["back_target"],
+                language=language,
                 phonetic_hint=row["phonetic_hint"],
                 category=row["category"],
                 owner_id=owner_id,
@@ -78,6 +84,7 @@ def _seed_scenarios(db) -> None:
             title=row["title"],
             description=row["description"],
             category=row["category"],
+            language=row.get("language", "de"),
         )
         db.add(scenario)
         db.flush()
@@ -86,7 +93,7 @@ def _seed_scenarios(db) -> None:
             step = ScenarioStep(
                 scenario_id=scenario.id,
                 step_order=step_index,
-                speaker_text_de=step_row["speaker_de"],
+                speaker_text_target=step_row["speaker_target"],
                 speaker_text_pt=step_row.get("speaker_pt"),
             )
             db.add(step)
@@ -95,7 +102,7 @@ def _seed_scenarios(db) -> None:
                 db.add(
                     ScenarioOption(
                         step_id=step.id,
-                        option_text_de=option_row["text_de"],
+                        option_text_target=option_row["text_target"],
                         is_correct=option_row["correct"],
                         explanation=option_row["explanation"],
                         option_order=option_index,

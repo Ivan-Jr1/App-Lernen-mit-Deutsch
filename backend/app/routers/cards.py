@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import or_, select
 
 from app.deps import DbSession, Reader, Writer
+from app.languages import is_supported
 from app.models import Card, User
 from app.schemas import CardCreate, CardOut, CardUpdate
 
@@ -24,7 +25,12 @@ def _load_visible_card(db: DbSession, card_id: int, user: User) -> Card:
 
 @router.get("", response_model=list[CardOut])
 def list_cards(db: DbSession, current_user: Reader, category: str | None = None):
-    query = select(Card).where(_visible_to(current_user)).order_by(Card.id)
+    """Cartões visíveis ao usuário no idioma que ele está estudando agora."""
+    query = (
+        select(Card)
+        .where(_visible_to(current_user), Card.language == current_user.learning_language)
+        .order_by(Card.id)
+    )
     if category:
         query = query.where(Card.category == category)
     return list(db.scalars(query))
@@ -39,9 +45,14 @@ def create_card(payload: CardCreate, db: DbSession, current_user: Writer):
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Dono informado não existe.")
         owner_id = owner.id
 
+    language = payload.language or current_user.learning_language
+    if not is_supported(language):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Idioma não suportado: {language}")
+
     card = Card(
         front_pt=payload.front_pt,
-        back_de=payload.back_de,
+        back_target=payload.back_target,
+        language=language,
         phonetic_hint=payload.phonetic_hint,
         category=payload.category,
         owner_id=owner_id,

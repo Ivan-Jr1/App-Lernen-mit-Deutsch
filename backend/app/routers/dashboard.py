@@ -18,8 +18,11 @@ router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
 
 def _cards_due_today(db: DbSession, user: User, today) -> int:
-    """Cartões visíveis ao usuário que estão vencidos ou nunca foram vistos."""
-    visible = select(Card.id).where(or_(Card.owner_id.is_(None), Card.owner_id == user.id))
+    """Cartões do idioma ativo, visíveis ao usuário, vencidos ou nunca vistos."""
+    visible = select(Card.id).where(
+        or_(Card.owner_id.is_(None), Card.owner_id == user.id),
+        Card.language == user.learning_language,
+    )
 
     seen_and_not_due = select(func.count(ReviewState.id)).where(
         ReviewState.user_id == user.id,

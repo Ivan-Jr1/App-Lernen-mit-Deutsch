@@ -23,6 +23,13 @@ export const ChatIcon = (props) => (
   </svg>
 )
 
+export const GlobeIcon = (props) => (
+  <svg {...base} {...props}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M3 12h18M12 3c2.5 2.7 3.8 5.8 3.8 9S14.5 18.3 12 21c-2.5-2.7-3.8-5.8-3.8-9S9.5 5.7 12 3z" />
+  </svg>
+)
+
 export const ChartIcon = (props) => (
   <svg {...base} {...props}>
     <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />

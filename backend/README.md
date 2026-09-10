@@ -14,7 +14,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-python -m app.seed            # popula usuários, ~17 cartões e 3 cenários
+python -m app.seed            # popula usuários, ~110 cartões (alemão + inglês) e 10 cenários
 uvicorn app.main:app --reload
 ```
 
@@ -52,7 +52,7 @@ app/
   srs.py         algoritmo SM-2, isolado e testável
   scoring.py     regras de pontuação
   stats.py       cálculo de streak e agregados do dashboard
-  routers/       cards, reviews, scenarios, dashboard
+  routers/       auth, languages, cards, reviews, scenarios, dashboard, progress
   seed.py        popula o banco a partir de data/seed_data.py
 tests/           pytest — SM-2, revisões, cenários, dashboard
 ```

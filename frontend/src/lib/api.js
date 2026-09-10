@@ -69,6 +69,9 @@ export const api = {
       body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
     }),
 
+  // Idiomas de estudo disponíveis — [{ code, name }]
+  listLanguages: () => request('/api/languages'),
+
   // Flashcards — { daily_goal, reviewed_today, due_total, cards }.
   // Por padrão a fila vem limitada à meta diária; all:true traz todos os vencidos.
   dueCards: ({ all = false } = {}) =>

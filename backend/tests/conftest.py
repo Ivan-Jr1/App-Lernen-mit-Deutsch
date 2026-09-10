@@ -61,8 +61,8 @@ def seeded(db_session: Session) -> dict:
 
     db_session.add_all(
         [
-            Card(front_pt="Obrigado", back_de="Danke", phonetic_hint="Dânke", category="básico"),
-            Card(front_pt="Sim / Não", back_de="Ja / Nein", phonetic_hint="Iá / Náin", category="básico"),
+            Card(front_pt="Obrigado", back_target="Danke", phonetic_hint="Dânke", category="básico"),
+            Card(front_pt="Sim / Não", back_target="Ja / Nein", phonetic_hint="Iá / Náin", category="básico"),
         ]
     )
 
@@ -79,7 +79,7 @@ def seeded(db_session: Session) -> dict:
         step = ScenarioStep(
             scenario_id=scenario.id,
             step_order=order,
-            speaker_text_de=prompt,
+            speaker_text_target=prompt,
             speaker_text_pt=None,
         )
         db_session.add(step)
@@ -88,14 +88,14 @@ def seeded(db_session: Session) -> dict:
             [
                 ScenarioOption(
                     step_id=step.id,
-                    option_text_de="Resposta certa",
+                    option_text_target="Resposta certa",
                     is_correct=True,
                     explanation="É a forma natural.",
                     option_order=1,
                 ),
                 ScenarioOption(
                     step_id=step.id,
-                    option_text_de="Resposta errada",
+                    option_text_target="Resposta errada",
                     is_correct=False,
                     explanation="Soa estranho.",
                     option_order=2,
